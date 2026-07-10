@@ -1,0 +1,1 @@
+Upload these files to a GitHub repository, enable GitHub Pages, then Add to Home Screen in Safari.

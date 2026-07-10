@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Catechism">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F7F3E8">
+<title>Daily Catechism</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%238B2E2E'/%3E%3Crect x='34' y='26' width='112' height='128' rx='4' fill='%23F7F3E8'/%3E%3Crect x='34' y='26' width='10' height='128' fill='%235c1f1f'/%3E%3Ctext x='90' y='82' font-family='Georgia,serif' font-size='54' fill='%238B2E2E' text-anchor='middle' font-weight='bold'%3EQ%3C/text%3E%3Ctext x='90' y='132' font-family='Georgia,serif' font-size='54' fill='%232F5233' text-anchor='middle' font-weight='bold'%3EA%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#F7F3E8;
+  --paper-raised:#FCFAF3;
+  --ink:#1C1B19;
+  --ink-soft:#4a4744;
+  --ink-faint:#8a857d;
+  --oxblood:#8B2E2E;
+  --oxblood-soft:#a6453f;
+  --pine:#2F5233;
+  --pine-soft:#3d6a43;
+  --slate:#3A4A5C;
+  --rule:#dcd5c4;
+  --rule-soft:#e8e2d2;
+  --shadow: 0 1px 2px rgba(28,27,25,0.06), 0 8px 24px rgba(28,27,25,0.08);
+  --serif: Iowan Old Style, "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 18px;
+  color-scheme: light;
+}
+
+[data-theme="dark"]{
+  --paper:#17181A;
+  --paper-raised:#1E2022;
+  --ink:#E8E3D5;
+  --ink-soft:#c2bcac;
+  --ink-faint:#7d7970;
+  --oxblood:#C4544D;
+  --oxblood-soft:#d97b74;
+  --pine:#5c9464;
+  --pine-soft:#6fab77;
+  --slate:#8fa3b8;
+  --rule:#33352f;
+  --rule-soft:#292b26;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 30px rgba(0,0,0,0.4);
+  color-scheme: dark;
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html,body{
+  margin:0; padding:0; height:100%;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;
+}
+
+body{
+  transition:background 0.3s ease, color 0.3s ease;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  min-height:100vh;
+}
+
+.app{
+  max-width:640px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+/* ---------- Ribbon progress bar (signature element) ---------- */
+.ribbon-wrap{
+  position:sticky; top:0; z-index:50;
+  background:var(--paper);
+  padding:10px 20px 0;
+  transition:background 0.3s ease;
+}
+.ribbon-track{
+  position:relative;
+  height:34px;
+  background:var(--rule-soft);
+  border-radius:3px;
+  overflow:visible;
+  cursor:pointer;
+}
+.ribbon-seg{
+  position:absolute; top:0; bottom:0;
+  opacity:0.35;
+}
+.ribbon-seg.hc1{ background:var(--oxblood); left:0; }
+.ribbon-seg.wsc{ background:var(--slate); }
+.ribbon-seg.hc2{ background:var(--pine); }
+.ribbon-fill{
+  position:absolute; top:0; bottom:0; left:0;
+  background:var(--oxblood);
+  border-radius:3px 0 0 3px;
+  transition:width 0.4s cubic-bezier(.4,0,.2,1), background 0.3s ease;
+}
+.ribbon-mark{
+  position:absolute; top:-4px;
+  width:3px; height:42px;
+  background:var(--ink);
+  opacity:0.25;
+  border-radius:2px;
+}
+.ribbon-tail{
+  position:absolute; top:100%;
+  width:14px; height:16px;
+  transform:translateX(-50%);
+  transition:left 0.4s cubic-bezier(.4,0,.2,1);
+}
+.ribbon-tail svg{ width:100%; height:100%; display:block; }
+.ribbon-labels{
+  display:flex; justify-content:space-between;
+  font-size:11px; letter-spacing:0.04em;
+  color:var(--ink-faint);
+  margin-top:20px;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Header ---------- */
+.header{
+  padding:6px 20px 14px;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px;
+}
+.header-text{ flex:1; min-width:0; }
+.eyebrow{
+  font-size:12px; letter-spacing:0.09em; text-transform:uppercase;
+  color:var(--ink-faint); font-weight:600; margin:0 0 2px;
+}
+.date-line{
+  font-size:15px; color:var(--ink-soft); margin:0;
+  font-weight:500;
+}
+.header-actions{ display:flex; gap:8px; flex-shrink:0; padding-top:1px; }
+.icon-btn{
+  width:38px; height:38px;
+  border-radius:50%;
+  border:1px solid var(--rule);
+  background:var(--paper-raised);
+  color:var(--ink-soft);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:transform 0.15s ease, background 0.15s ease;
+  flex-shrink:0;
+}
+.icon-btn:active{ transform:scale(0.92); }
+.icon-btn svg{ width:19px; height:19px; }
+
+/* ---------- Main card (open page) ---------- */
+.page{
+  flex:1;
+  margin:4px 20px 20px;
+  background:var(--paper-raised);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:26px 24px 22px;
+  position:relative;
+  transition:background 0.3s ease;
+}
+.page::before{
+  content:"";
+  position:absolute; left:0; top:14px; bottom:14px;
+  width:3px;
+  background:linear-gradient(180deg, transparent, var(--oxblood) 15%, var(--oxblood) 85%, transparent);
+  opacity:0.5;
+  border-radius:0 3px 3px 0;
+}
+
+.book-tag{
+  font-family:var(--serif);
+  font-size:13px; letter-spacing:0.06em;
+  color:var(--oxblood);
+  font-style:italic;
+  margin:0 0 4px;
+  font-weight:600;
+}
+.lords-day-tag{
+  font-size:11.5px; letter-spacing:0.05em;
+  color:var(--ink-faint);
+  margin:0 0 18px;
+  text-transform:uppercase;
+}
+
+.q-number{
+  display:inline-flex;
+  align-items:center; justify-content:center;
+  font-family:var(--serif);
+  font-weight:700;
+  font-size:15px;
+  color:var(--paper);
+  background:var(--oxblood);
+  width:30px; height:30px;
+  border-radius:50%;
+  margin-right:10px;
+  flex-shrink:0;
+  transition:background 0.3s ease;
+}
+.q-row{ display:flex; align-items:flex-start; margin-bottom:14px; }
+.q-text{
+  font-family:var(--serif);
+  font-size:20px;
+  line-height:1.4;
+  font-weight:600;
+  color:var(--ink);
+  padding-top:3px;
+}
+
+.a-label{
+  font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--pine); font-weight:700;
+  margin:2px 0 8px 40px;
+}
+.a-text{
+  font-family:var(--serif);
+  font-size:18px;
+  line-height:1.62;
+  color:var(--ink);
+  margin:0 0 22px 40px;
+}
+
+.refs-block{
+  margin:0 0 4px 40px;
+  padding-top:14px;
+  border-top:1px solid var(--rule);
+}
+.refs-label{
+  font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--slate); font-weight:700; margin:0 0 6px;
+}
+.refs-text{
+  font-size:14.5px; line-height:1.55;
+  color:var(--ink-soft);
+  font-style:italic;
+}
+
+/* ---------- Completed checkbox ---------- */
+.complete-row{
+  margin:20px 0 0 40px;
+  display:flex; align-items:center; gap:10px;
+  cursor:pointer;
+  user-select:none;
+}
+.checkbox{
+  width:24px; height:24px;
+  border-radius:7px;
+  border:2px solid var(--rule);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  transition:all 0.2s ease;
+  background:var(--paper);
+}
+.checkbox.checked{
+  background:var(--pine);
+  border-color:var(--pine);
+}
+.checkbox svg{ width:15px; height:15px; opacity:0; transform:scale(0.5); transition:all 0.2s ease; }
+.checkbox.checked svg{ opacity:1; transform:scale(1); }
+.complete-label{
+  font-size:15px; color:var(--ink-soft); font-weight:500;
+}
+.complete-row.done .complete-label{ color:var(--pine); }
+
+/* ---------- Notes ---------- */
+.notes-block{ margin:18px 0 0 40px; }
+.notes-label{
+  font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--ink-faint); font-weight:700; margin:0 0 8px;
+  display:flex; align-items:center; gap:6px;
+}
+.notes-area{
+  width:100%;
+  min-height:64px;
+  border:1px solid var(--rule);
+  border-radius:12px;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:14.5px;
+  line-height:1.5;
+  padding:12px 14px;
+  resize:vertical;
+  transition:border-color 0.2s ease;
+}
+.notes-area:focus{
+  outline:none;
+  border-color:var(--oxblood);
+}
+.notes-area::placeholder{ color:var(--ink-faint); }
+.save-hint{
+  font-size:11.5px; color:var(--ink-faint); margin-top:6px;
+  height:14px;
+  opacity:0; transition:opacity 0.3s ease;
+}
+.save-hint.show{ opacity:1; }
+
+/* ---------- Nav buttons ---------- */
+.nav-row{
+  display:flex; gap:10px;
+  padding:0 20px 18px;
+}
+.nav-btn{
+  flex:1;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:14px 12px;
+  border-radius:14px;
+  border:1px solid var(--rule);
+  background:var(--paper-raised);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:14.5px; font-weight:600;
+  cursor:pointer;
+  transition:transform 0.12s ease, background 0.15s ease;
+}
+.nav-btn:active{ transform:scale(0.97); background:var(--rule-soft); }
+.nav-btn svg{ width:16px; height:16px; flex-shrink:0; }
+.nav-btn.today-btn{
+  flex:0 0 auto;
+  padding:14px 18px;
+  background:var(--oxblood);
+  color:var(--paper);
+  border-color:var(--oxblood);
+}
+.nav-btn.today-btn:active{ background:var(--oxblood-soft); }
+.nav-btn:disabled{ opacity:0.4; pointer-events:none; }
+
+/* ---------- Modal (Go to Date / Settings) ---------- */
+.modal-backdrop{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.45);
+  z-index:200;
+  display:flex; align-items:flex-end; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.25s ease;
+}
+.modal-backdrop.open{ opacity:1; pointer-events:auto; }
+.modal-sheet{
+  background:var(--paper-raised);
+  width:100%; max-width:640px;
+  border-radius:22px 22px 0 0;
+  padding:14px 22px calc(26px + env(safe-area-inset-bottom));
+  transform:translateY(100%);
+  transition:transform 0.3s cubic-bezier(.32,.72,0,1);
+  max-height:82vh;
+  overflow-y:auto;
+}
+.modal-backdrop.open .modal-sheet{ transform:translateY(0); }
+.modal-handle{
+  width:38px; height:5px; border-radius:3px;
+  background:var(--rule); margin:0 auto 18px;
+}
+.modal-title{
+  font-family:var(--serif);
+  font-size:19px; font-weight:700;
+  margin:0 0 16px;
+  color:var(--ink);
+}
+.field-label{
+  font-size:12px; letter-spacing:0.05em; text-transform:uppercase;
+  color:var(--ink-faint); font-weight:700; margin:16px 0 8px;
+}
+.field-label:first-of-type{ margin-top:0; }
+.date-input, .day-input{
+  width:100%;
+  padding:13px 14px;
+  border-radius:12px;
+  border:1px solid var(--rule);
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;
+}
+.date-input:focus, .day-input:focus{ outline:none; border-color:var(--oxblood); }
+.modal-btn-row{ display:flex; gap:10px; margin-top:20px; }
+.modal-btn{
+  flex:1; padding:14px;
+  border-radius:12px; border:none;
+  font-family:var(--sans); font-size:15px; font-weight:700;
+  cursor:pointer;
+}
+.modal-btn.primary{ background:var(--oxblood); color:var(--paper); }
+.modal-btn.secondary{ background:var(--rule-soft); color:var(--ink); }
+.modal-btn:active{ transform:scale(0.97); }
+
+.theme-options{ display:flex; gap:8px; }
+.theme-opt{
+  flex:1; padding:12px 8px;
+  border-radius:12px; border:1.5px solid var(--rule);
+  background:var(--paper);
+  color:var(--ink-soft);
+  font-size:13.5px; font-weight:600;
+  text-align:center; cursor:pointer;
+  transition:all 0.15s ease;
+}
+.theme-opt.active{
+  border-color:var(--oxblood);
+  color:var(--oxblood);
+  background:color-mix(in srgb, var(--oxblood) 8%, var(--paper));
+}
+
+.stat-row{
+  display:flex; justify-content:space-between;
+  padding:11px 0;
+  border-bottom:1px solid var(--rule);
+  font-size:14.5px;
+}
+.stat-row:last-child{ border-bottom:none; }
+.stat-label{ color:var(--ink-soft); }
+.stat-value{ color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+
+/* legend dots in modal */
+.legend{ display:flex; flex-direction:column; gap:9px; margin-top:4px; }
+.legend-item{ display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-soft); }
+.legend-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+/* Toast */
+.toast{
+  position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(20px);
+  background:var(--ink);
+  color:var(--paper);
+  padding:11px 20px;
+  border-radius:100px;
+  font-size:14px; font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,0.25);
+  opacity:0; pointer-events:none;
+  transition:all 0.3s cubic-bezier(.32,.72,0,1);
+  z-index:300;
+  white-space:nowrap;
+}
+[data-theme="dark"] .toast{ background:var(--oxblood); }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+@media (min-width:520px){
+  .q-text{ font-size:21px; }
+  .a-text{ font-size:18.5px; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{ transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+}
+
+.hidden{ display:none !important; }
+</style>
+</head>
+<body data-theme="light">
+<div class="app">
+
+  <div class="ribbon-wrap">
+    <div class="ribbon-track" id="ribbonTrack" role="button" aria-label="Jump to day in yearly cycle">
+      <div class="ribbon-seg hc1" style="left:0; width:35.34%;"></div>
+      <div class="ribbon-seg wsc" style="left:35.34%; width:29.32%;"></div>
+      <div class="ribbon-seg hc2" style="left:64.66%; width:35.34%;"></div>
+      <div class="ribbon-mark" style="left:35.34%;"></div>
+      <div class="ribbon-mark" style="left:64.66%;"></div>
+      <div class="ribbon-fill" id="ribbonFill"></div>
+      <div class="ribbon-tail" id="ribbonTail">
+        <svg viewBox="0 0 14 16"><path d="M0 0 H14 V12 L7 16 L0 12 Z" fill="var(--oxblood)"/></svg>
+      </div>
+    </div>
+    <div class="ribbon-labels">
+      <span id="dayLabel">Day 1 of 365</span>
+      <span id="pctLabel">0%</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="header-text">
+      <p class="eyebrow" id="bookLabel">Heidelberg Catechism</p>
+      <p class="date-line" id="dateLabel">Wednesday, January 1</p>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="dateBtn" aria-label="Go to date">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="page">
+    <p class="book-tag" id="bookTag">Heidelberg Catechism</p>
+    <p class="lords-day-tag" id="lordsDayTag">Lord's Day 1</p>
+
+    <div class="q-row">
+      <span class="q-number" id="qNumber">1</span>
+      <p class="q-text" id="qText">Loading…</p>
+    </div>
+
+    <p class="a-label">Answer</p>
+    <p class="a-text" id="aText"></p>
+
+    <div class="refs-block">
+      <p class="refs-label">Scripture (ESV)</p>
+      <p class="refs-text" id="refsText"></p>
+    </div>
+
+    <div class="complete-row" id="completeRow">
+      <div class="checkbox" id="checkbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--paper)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <span class="complete-label" id="completeLabel">Completed today</span>
+    </div>
+
+    <div class="notes-block">
+      <p class="notes-label">Notes</p>
+      <textarea class="notes-area" id="notesArea" placeholder="Jot down a thought, a prayer, a question…"></textarea>
+      <div class="save-hint" id="saveHint">Saved</div>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <span>Previous</span>
+    </button>
+    <button class="nav-btn today-btn" id="todayBtn" aria-label="Go to today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+    </button>
+    <button class="nav-btn" id="nextBtn">
+      <span>Next</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+</div>
+
+<!-- Go to Date modal -->
+<div class="modal-backdrop" id="dateModalBackdrop">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <p class="modal-title">Go to a Date</p>
+
+    <p class="field-label">By calendar date</p>
+    <input type="date" class="date-input" id="dateInput">
+
+    <p class="field-label">Or by day number (1–365)</p>
+    <input type="number" class="day-input" id="dayInput" min="1" max="365" placeholder="e.g. 200">
+
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" id="dateCancelBtn">Cancel</button>
+      <button class="modal-btn primary" id="dateGoBtn">Go</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-backdrop" id="settingsModalBackdrop">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <p class="modal-title">Settings & Progress</p>
+
+    <p class="field-label">Appearance</p>
+    <div class="theme-options">
+      <div class="theme-opt" data-theme-choice="light">Light</div>
+      <div class="theme-opt" data-theme-choice="dark">Dark</div>
+      <div class="theme-opt" data-theme-choice="auto">Auto</div>
+    </div>
+
+    <p class="field-label">Your progress</p>
+    <div class="stat-row">
+      <span class="stat-label">Days completed</span>
+      <span class="stat-value" id="statCompleted">0 of 365</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Current streak</span>
+      <span class="stat-value" id="statStreak">0 days</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Cycle</span>
+      <span class="stat-value" id="statCycle">Heidelberg, Pass 1</span>
+    </div>
+
+    <p class="field-label">Reading plan</p>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--oxblood)"></span> Days 1–129 · Heidelberg Catechism Q1–129</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--slate)"></span> Days 130–236 · Westminster Shorter Catechism Q1–107</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--pine)"></span> Days 237–365 · Heidelberg Catechism Q1–129, again</div>
+    </div>
+
+    <div class="modal-btn-row">
+      <button class="modal-btn primary" id="settingsCloseBtn" style="flex:1;">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const HEIDELBERG = [{"q": 1, "lordsDay": 1, "question": "What is your only comfort in life and in death?", "answer": "That I am not my own, but belong—body and soul, in life and in death—to my faithful Savior Jesus Christ. He has fully paid for all my sins with his precious blood, and has set me free from all the power of the devil. He also watches over me in such a way that not a hair can fall from my head without the will of my Father in heaven; in fact, all things must work together for my salvation. Because I belong to him, Christ, by his Holy Spirit, assures me of eternal life and makes me wholeheartedly willing and ready from now on to live for him.", "refs": "1 Cor. 6:19-20; Rom. 14:7-9; 1 Cor. 3:23; John 10:27-30; 1 Pet. 1:18-19; 1 John 1:7; 1 John 3:8; John 6:39; Matt. 10:29-31; Rom. 8:28; Rom. 8:15-16; 2 Cor. 1:21-22; Rom. 8:1-17"}, {"q": 2, "lordsDay": 1, "question": "What must you know to live and die in the joy of this comfort?", "answer": "Three things: first, how great my sin and misery are; second, how I am set free from all my sins and misery; third, how I am to thank God for such deliverance.", "refs": "Rom. 3:9-10; Rom. 3:19; John 9:41; Matt. 1:21; John 17:3; Eph. 5:8-10; 1 Pet. 2:9-10"}, {"q": 3, "lordsDay": 2, "question": "How do you come to know your misery?", "answer": "The law of God tells me.", "refs": "Rom. 3:20; Rom. 7:7-25"}, {"q": 4, "lordsDay": 2, "question": "What does God's law require of us?", "answer": "Christ teaches us this in summary in Matthew 22: \"You shall love the Lord your God with all your heart and with all your soul and with all your mind and with all your strength. This is the great and first commandment. And a second is like it: You shall love your neighbor as yourself. On these two commandments depend all the law and the prophets.\"", "refs": "Matt. 22:37-40; Deut. 6:5; Lev. 19:18"}, {"q": 5, "lordsDay": 2, "question": "Can you keep all this perfectly?", "answer": "No. I have a natural tendency to hate God and my neighbor.", "refs": "Rom. 3:9-20; Rom. 8:7; Eph. 2:1-3; Titus 3:3"}, {"q": 6, "lordsDay": 3, "question": "Did God create people so wicked and perverse?", "answer": "No. God created them good and in his own image, that is, in true righteousness and holiness, so that they might truly know God their creator, love him with all their heart, and live with him in eternal happiness, to praise and glorify him.", "refs": "Gen. 1:26-27; 2 Cor. 3:18; Eph. 4:23-24; Col. 3:9-10"}, {"q": 7, "lordsDay": 3, "question": "Then where does this corrupt human nature come from?", "answer": "From the fall and disobedience of our first parents, Adam and Eve, in Paradise. This fall has so poisoned our nature that we are all conceived and born in a sinful condition.", "refs": "Gen. 3:1-19; Rom. 5:12, 18-19; Ps. 51:5"}, {"q": 8, "lordsDay": 3, "question": "But are we so corrupt that we are totally unable to do any good and inclined toward all evil?", "answer": "Yes, unless we are born again by the Spirit of God.", "refs": "John 3:3-5; Gen. 6:5; Job 14:4; Isa. 53:6"}, {"q": 9, "lordsDay": 4, "question": "Is God not unjust to demand in his law what we are unable to do?", "answer": "No, God created human beings with the ability to keep the law. They, however, at the instigation of the devil, in willful disobedience, robbed themselves and all their descendants of these gifts.", "refs": "Eph. 4:24; Gen. 3:1-24; Rom. 5:12"}, {"q": 10, "lordsDay": 4, "question": "Will God allow such disobedience and rebellion to go unpunished?", "answer": "Certainly not. He is terribly angry about the sin we are born with as well as the sins we personally commit. God will punish them by a just judgment both now and in eternity, as he has declared: \"Cursed is everyone who does not continue to do everything written in the Book of the Law.\"", "refs": "Ex. 34:7; Ps. 5:4-6; Nah. 1:2; Rom. 1:18; Eph. 5:6; Gal. 3:10"}, {"q": 11, "lordsDay": 4, "question": "But is God not also merciful?", "answer": "God is certainly merciful, but he is also just. His justice demands that sin, committed against his supreme majesty, be punished with the supreme penalty—eternal punishment of body and soul.", "refs": "Ex. 34:6-7; Ps. 103:8-9; Deut. 7:9-11; Matt. 25:45-46"}, {"q": 12, "lordsDay": 5, "question": "According to God's righteous judgment we deserve punishment both now and in eternity: how then can we escape this punishment and return to God's favor?", "answer": "God demands that his justice be satisfied. Therefore the claims of this justice must be paid in full, either by ourselves or by another.", "refs": "Ex. 23:7; Rom. 2:1-11"}, {"q": 13, "lordsDay": 5, "question": "Can we ourselves pay this debt?", "answer": "Certainly not. Actually, we increase our debt every day.", "refs": "Matt. 6:12; Rom. 2:4-5"}, {"q": 14, "lordsDay": 5, "question": "Can any mere creature pay for us?", "answer": "No. First, God will not punish any other creature for the sin that a human being has committed. Second, no mere creature can bear the weight of God's eternal wrath against sin and deliver others from it.", "refs": "Ezek. 18:4, 20; Ps. 130:3; Nah. 1:6; Heb. 2:14-18"}, {"q": 15, "lordsDay": 5, "question": "What kind of mediator and deliverer should we look for then?", "answer": "One who is a true and righteous human, yet more powerful than all creatures, that is, one who is at the same time true God.", "refs": "1 Cor. 15:21-22; Heb. 7:26; Isa. 7:14; Jer. 23:6"}, {"q": 16, "lordsDay": 6, "question": "Why must he be a true and righteous human?", "answer": "God's justice requires that human nature, which has sinned, must pay for sin; but a sinful human could never pay for others.", "refs": "Rom. 5:12, 15; 1 Cor. 15:21; Heb. 2:14-16; Heb. 7:26-27"}, {"q": 17, "lordsDay": 6, "question": "Why must he also be true God?", "answer": "So that, by the power of his divinity, he might bear the weight of God's wrath in his humanity and earn for us and restore to us righteousness and life.", "refs": "Isa. 53:8; Acts 2:24; John 3:16; 2 Cor. 5:21"}, {"q": 18, "lordsDay": 6, "question": "Who is this mediator—true God and at the same time truly human and truly righteous?", "answer": "Our Lord Jesus Christ, who was given to us to completely deliver us and make us right with God.", "refs": "1 Tim. 2:5; Matt. 1:23; Luke 2:11; 1 Cor. 1:30"}, {"q": 19, "lordsDay": 6, "question": "How do you come to know this?", "answer": "The holy gospel tells me. God himself began to reveal the gospel already in Paradise; later, he proclaimed it by the holy patriarchs and prophets, and portrayed it by the sacrifices and other ceremonies of the law; and finally, he fulfilled it through his own beloved Son.", "refs": "Gen. 3:15; Gen. 22:18; Gen. 49:10; Rom. 1:1-4; Acts 10:43; Heb. 1:1-2"}, {"q": 20, "lordsDay": 7, "question": "Are all people then saved through Christ just as they were lost through Adam?", "answer": "No. Only those are saved who through true faith are grafted into Christ and accept all his benefits.", "refs": "John 1:12-13; John 3:16-18; Matt. 7:14; Rom. 11:16-21"}, {"q": 21, "lordsDay": 7, "question": "What is true faith?", "answer": "True faith is not only a knowledge and conviction that everything God reveals in his Word is true; it is also a deep-rooted assurance, created in me by the Holy Spirit through the gospel, that, out of sheer grace earned for us by Christ, not only others, but I too, have had my sins forgiven, have been made forever right with God, and have been granted salvation.", "refs": "John 17:3, 17; Heb. 11:1-3; James 2:19; Rom. 4:18-21; Rom. 5:1; Gal. 2:20; Eph. 3:11-12"}, {"q": 22, "lordsDay": 7, "question": "What then must a Christian believe?", "answer": "All that is promised us in the gospel, a summary of which is taught us in the articles of the Apostles' Creed, our universally accepted confession of faith.", "refs": "John 20:30-31; Matt. 28:19-20"}, {"q": 23, "lordsDay": 7, "question": "What are these articles?", "answer": "I believe in God, the Father almighty, creator of heaven and earth. And in Jesus Christ, his only begotten Son, our Lord: who was conceived by the Holy Spirit, born of the virgin Mary, suffered under Pontius Pilate, was crucified, died, and was buried; he descended into hell. The third day he rose again from the dead. He ascended into heaven and is seated at the right hand of God the Father almighty. From there he will come to judge the living and the dead. I believe in the Holy Spirit, the holy catholic church, the communion of saints, the forgiveness of sins, the resurrection of the body, and the life everlasting.", "refs": "Apostles' Creed"}, {"q": 24, "lordsDay": 7, "question": "How are these articles divided?", "answer": "Into three parts: God the Father and our creation; God the Son and our deliverance; and God the Holy Spirit and our sanctification.", "refs": "Gen. 1:1-2; Titus 3:5-6; 1 Pet. 1:2"}, {"q": 25, "lordsDay": 8, "question": "Since there is only one Divine Being, why do you speak of three: Father, Son, and Holy Spirit?", "answer": "Because that is how God has revealed himself in his Word: these three distinct persons are one, true, eternal God.", "refs": "Deut. 6:4; Matt. 3:16-17; Matt. 28:19; Isa. 44:6; John 5:7"}, {"q": 26, "lordsDay": 9, "question": "What do you believe when you say, \"I believe in God, the Father almighty, creator of heaven and earth\"?", "answer": "That the eternal Father of our Lord Jesus Christ, who out of nothing created heaven and earth and everything in them, who still upholds and rules them by his eternal counsel and providence, is my God and Father because of Christ his Son. I trust him so much that I do not doubt he will provide whatever I need for body and soul, and will turn to my good whatever adversity he sends me in this sad world. He is able to do this because he is almighty God; he desires to do this because he is a faithful Father.", "refs": "Gen. 1:1; Ps. 33:6; John 1:1-3; Heb. 1:1-3; Matt. 6:25-34; Rom. 8:28"}, {"q": 27, "lordsDay": 10, "question": "What do you understand by the providence of God?", "answer": "The almighty and ever present power of God by which God upholds, as with his hand, heaven and earth and all creatures, and so rules them that leaf and blade, rain and drought, fruitful and lean years, food and drink, health and sickness, prosperity and poverty—all things, in fact, come to us not by chance but from his fatherly hand.", "refs": "Acts 17:24-28; Jer. 5:24; Job 1:21; Prov. 16:33; Matt. 10:29-31"}, {"q": 28, "lordsDay": 10, "question": "How does the knowledge of God's creation and providence help us?", "answer": "We can be patient when things go against us, thankful when things go well, and for the future we can have good confidence in our faithful God and Father that nothing in creation will separate us from his love. All creatures are so completely in his hand that without his will they can neither move nor be moved.", "refs": "Job 1:20-22; Rom. 5:3-5; Rom. 8:35-39"}, {"q": 29, "lordsDay": 11, "question": "Why is the Son of God called \"Jesus,\" meaning \"savior\"?", "answer": "Because he saves us from our sins, and because salvation should not be sought or found in anyone else.", "refs": "Matt. 1:21; Acts 4:12; Heb. 7:24-25"}, {"q": 30, "lordsDay": 11, "question": "Do those who look for their salvation and security in saints, in themselves, or elsewhere really believe in the only savior Jesus?", "answer": "No. Although they boast of being his, by their actions they deny the only savior and deliverer, Jesus. Either Jesus is not a full and perfect savior, or those who in true faith accept this savior must find in him all that is necessary for their salvation.", "refs": "1 Cor. 1:12-13, 30-31; Gal. 5:4; Col. 1:19-20; Col. 2:10; 1 John 1:7"}, {"q": 31, "lordsDay": 12, "question": "Why is he called \"Christ,\" meaning \"anointed\"?", "answer": "Because he has been ordained by God the Father and has been anointed with the Holy Spirit to be our chief prophet and teacher who fully reveals to us the secret counsel and will of God concerning our deliverance; our only high priest who has delivered us by the one sacrifice of his body, and who continually pleads our cause with the Father; and our eternal king who governs us by his Word and Spirit, and who guards us and keeps us in the freedom he has won for us.", "refs": "Luke 4:18-19; Heb. 1:9; John 1:18; Heb. 9:12; Heb. 10:11-14; Rom. 8:34; Matt. 21:5; Rev. 19:16"}, {"q": 32, "lordsDay": 12, "question": "But why are you called a Christian?", "answer": "Because by faith I am a member of Christ and so I share in his anointing. I am anointed to confess his name, to present myself to him as a living sacrifice of thanks, to strive with a free conscience against sin and the devil in this life, and afterward to reign with Christ over all creation for eternity.", "refs": "1 John 2:27; Acts 2:17; Rom. 12:1; 1 Pet. 2:9; 1 Pet. 2:5; 2 Tim. 2:12"}, {"q": 33, "lordsDay": 13, "question": "Why is he called God's \"only begotten Son\" when we also are God's children?", "answer": "Because Christ alone is the eternal, natural Son of God. We, however, are adopted children of God—adopted by grace through Christ.", "refs": "John 1:1-3, 14, 18; Heb. 1:1-2; Rom. 8:15-17; Eph. 1:5-6"}, {"q": 34, "lordsDay": 13, "question": "Why do you call him \"our Lord\"?", "answer": "Because—not with gold or silver, but with his precious blood—he has set us free from sin and from the tyranny of the devil, and has bought us, body and soul, to be his very own.", "refs": "1 Pet. 1:18-19; Col. 1:13-14; 1 Cor. 6:20"}, {"q": 35, "lordsDay": 14, "question": "What does it mean that he \"was conceived by the Holy Spirit, born of the virgin Mary\"?", "answer": "That the eternal Son of God, who is and remains true and eternal God, took to himself, through the working of the Holy Spirit, from the flesh and blood of the virgin Mary, a truly human nature so that he might also be David's true descendant, like his brothers and sisters in every way except for sin.", "refs": "John 1:1; John 1:14; Gal. 4:4; Luke 1:35; Rom. 1:3; Heb. 2:17; Heb. 4:15"}, {"q": 36, "lordsDay": 14, "question": "How does the holy conception and birth of Christ benefit you?", "answer": "He is our mediator, and with his innocence and perfect holiness he removes from God's sight my sin—mine since I was conceived.", "refs": "1 Pet. 1:18-19; 1 Cor. 1:30; Rom. 8:3-4"}, {"q": 37, "lordsDay": 15, "question": "What do you understand by the word \"suffered\"?", "answer": "That during his whole life on earth, but especially at the end, Christ sustained in body and soul the wrath of God against the sin of the whole human race. This he did in order that, by his suffering as the only atoning sacrifice, he might deliver us, body and soul, from eternal condemnation, and gain for us God's grace, righteousness, and eternal life.", "refs": "Isa. 53:1-12; 1 Pet. 2:24; 1 Pet. 3:18; 1 Tim. 2:5-6; Rom. 3:24-26"}, {"q": 38, "lordsDay": 15, "question": "Why did he suffer \"under Pontius Pilate\" as judge?", "answer": "So that he, though innocent, might be condemned by an earthly judge, and so free us from the severe judgment of God that was to fall on us.", "refs": "Luke 23:13-24; John 19:4, 12-16; Isa. 53:4-5"}, {"q": 39, "lordsDay": 15, "question": "Is it significant that he was \"crucified\" instead of dying some other way?", "answer": "Yes. By this death I am convinced that he took upon himself the curse which lay on me, since death by crucifixion was cursed by God.", "refs": "Gal. 3:13; Deut. 21:23"}, {"q": 40, "lordsDay": 16, "question": "Why did Christ have to suffer death?", "answer": "Because God's justice and truth require it: nothing else could pay for our sins except the death of the Son of God.", "refs": "Gen. 2:17; Rom. 6:23; Heb. 2:9, 14-15"}, {"q": 41, "lordsDay": 16, "question": "Why was he \"buried\"?", "answer": "His burial testifies that he really died.", "refs": "Isa. 53:9; John 19:38-42; Acts 13:29"}, {"q": 42, "lordsDay": 16, "question": "Since Christ has died for us, why do we still have to die?", "answer": "Our death is not a payment for our sins, but only a dying to sin and an entering into eternal life.", "refs": "John 5:24; Phil. 1:21-23; Rom. 7:24-25"}, {"q": 43, "lordsDay": 16, "question": "What further benefit do we receive from Christ's sacrifice and death on the cross?", "answer": "Through Christ's death our old selves are crucified, put to death, and buried with him, so that the evil desires of the flesh may no longer rule us, but that instead we may offer ourselves as a sacrifice of gratitude to him.", "refs": "Rom. 6:5-11; Col. 2:11-12; Rom. 12:1"}, {"q": 44, "lordsDay": 16, "question": "Why does the creed add, \"He descended into hell\"?", "answer": "To assure me during attacks of deepest dread and temptation that Christ my Lord, by suffering unspeakable anguish, pain, terror, and hellish agony in his soul, on the cross and before, has delivered me from the anguish and torment of hell.", "refs": "Matt. 27:45-46; Isa. 53:5; Ps. 18:4-6"}, {"q": 45, "lordsDay": 17, "question": "How does Christ's resurrection benefit us?", "answer": "First, by his resurrection he has overcome death, so that he might make us share in the righteousness he obtained for us by his death. Second, by his power we too are already now resurrected to a new life. Third, Christ's resurrection is a guarantee of our glorious resurrection.", "refs": "1 Cor. 15:16-20; Rom. 4:25; Rom. 6:4; Col. 3:1-4; 1 Cor. 15:20-23"}, {"q": 46, "lordsDay": 18, "question": "How do you understand the words \"He ascended to heaven\"?", "answer": "That Christ, while his disciples watched, was lifted up from the earth to heaven, and remains there on our behalf until he comes again to judge the living and the dead.", "refs": "Acts 1:9-11; Matt. 26:64; Heb. 9:24"}, {"q": 47, "lordsDay": 18, "question": "But is not Christ with us until the end of the world, as he promised?", "answer": "Christ is true human and true God. In his human nature Christ is not now on earth; but in his divinity, majesty, grace, and Spirit he is never absent from us.", "refs": "Matt. 28:20; Matt. 26:11; Acts 3:19-21; John 14:16-19"}, {"q": 48, "lordsDay": 18, "question": "If his humanity is not present wherever his divinity is, are not the two natures of Christ separated from each other?", "answer": "Not at all. Since divinity is not limited and is present everywhere, it is evident that Christ's divinity is beyond the bounds of the humanity that has been taken on, but is still never separated from it.", "refs": "Jer. 23:23-24; Acts 7:48-49; Col. 2:9; John 3:13"}, {"q": 49, "lordsDay": 18, "question": "How does Christ's ascension to heaven benefit us?", "answer": "First, he is our advocate in heaven in the presence of his Father. Second, we have our own flesh in heaven as a guarantee that Christ our head will take us, his members, to himself. Third, he sends us his Spirit as a further guarantee, by whose power we seek not earthly things but the things above, where Christ is, sitting at God's right hand.", "refs": "1 John 2:1; Rom. 8:34; John 14:2-3; John 17:24; John 14:16; Col. 3:1-4"}, {"q": 50, "lordsDay": 19, "question": "Why the words \"and is seated at the right hand of God\"?", "answer": "Because Christ ascended to heaven to show there that he is head of his church, the one through whom the Father rules all things.", "refs": "Eph. 1:20-23; Matt. 28:18; John 5:22-23"}, {"q": 51, "lordsDay": 19, "question": "How does this glory of Christ our head benefit us?", "answer": "First, through his Holy Spirit he pours out gifts from heaven upon us his members. Second, by his power he defends us and protects us against all enemies.", "refs": "Eph. 4:8-12; Ps. 2:9; John 10:27-30"}, {"q": 52, "lordsDay": 19, "question": "How does Christ's return \"to judge the living and the dead\" comfort you?", "answer": "In all my sorrow and persecution I turn my eyes to the heavens and confidently await as judge the very one who has already stood trial in my place before God and so has removed the whole curse from me. Christ will cast all his enemies and mine into everlasting condemnation, but will take me and all his chosen ones to himself into the joy and glory of heaven.", "refs": "Luke 21:28; Rom. 8:22-25; Matt. 25:31-46; 2 Thess. 1:6-10"}, {"q": 53, "lordsDay": 20, "question": "What do you believe concerning the Holy Spirit?", "answer": "First, that the Spirit, together with the Father and the Son, is eternal God. Second, that the Spirit is given also to me, so that, through true faith, he makes me share in Christ and all his benefits, comforts me, and remains with me forever.", "refs": "1 Cor. 12:13; Gal. 4:6; Matt. 28:19; Acts 5:3-4; John 15:26; John 14:16-17"}, {"q": 54, "lordsDay": 21, "question": "What do you believe concerning \"the holy catholic church\"?", "answer": "I believe that the Son of God through his Spirit and Word, out of the entire human race, from the beginning of the world to its end, gathers, protects, and preserves for himself a community chosen for eternal life and united in true faith. And of this community I am and always will remain a living member.", "refs": "John 10:14-16; Acts 20:28; Eph. 1:3-14; Rom. 8:29-30"}, {"q": 55, "lordsDay": 21, "question": "What do you understand by \"the communion of saints\"?", "answer": "First, that believers one and all, as members of this community, share in Christ and in all his treasures and gifts. Second, that each member should consider it a duty to use these gifts readily and cheerfully for the benefit and well-being of the other members.", "refs": "1 Cor. 12:12-13; 1 John 1:3; 1 Cor. 12:21; Phil. 2:4-8"}, {"q": 56, "lordsDay": 21, "question": "What do you believe concerning \"the forgiveness of sins\"?", "answer": "I believe that God, because of Christ's atonement, will never hold against me any of my sins nor my sinful nature which I need to struggle against all my life. Rather, in grace God grants me the righteousness of Christ to free me forever from judgment.", "refs": "2 Cor. 5:18-21; 1 John 2:1-2; Ps. 103:8-12; Rom. 8:1-4"}, {"q": 57, "lordsDay": 22, "question": "How does \"the resurrection of the body\" comfort you?", "answer": "Not only my soul will be taken immediately after this life to Christ its head, but also my very flesh, raised by the power of Christ, will be reunited with my soul and made like Christ's glorious body.", "refs": "Luke 23:43; Phil. 1:21-23; 1 Cor. 15:20, 42-46; Phil. 3:20-21"}, {"q": 58, "lordsDay": 22, "question": "How does the article concerning \"life everlasting\" comfort you?", "answer": "Even as I already now experience in my heart the beginning of eternal joy, so after this life I will possess perfect blessedness such as no eye has seen, no ear has heard, no human heart has ever imagined: a blessedness in which to praise God eternally.", "refs": "2 Cor. 5:2-3; 1 Cor. 2:9; John 17:3"}, {"q": 59, "lordsDay": 23, "question": "What good does it do you now that you believe all this?", "answer": "In Christ I am right with God and heir to life everlasting.", "refs": "Rom. 1:17; Rom. 5:1-2; John 3:36"}, {"q": 60, "lordsDay": 23, "question": "How are you righteous before God?", "answer": "Only by true faith in Jesus Christ. Even though my conscience accuses me of having grievously sinned against all God's commandments and of never having kept any of them, and even though I am still inclined toward all evil, nevertheless, without my deserving it at all, out of sheer grace, God grants and credits to me the perfect satisfaction, righteousness, and holiness of Christ, as if I had never sinned nor been a sinner, as if I myself had accomplished all the obedience which Christ has rendered for me, if only I accept this gift with a believing heart.", "refs": "Rom. 3:21-28; Gal. 2:16; Eph. 2:8-9; 2 Cor. 5:21; 1 John 1:8-9"}, {"q": 61, "lordsDay": 23, "question": "Why do you say that by faith alone you are righteous?", "answer": "Not because I please God by the worthiness of my faith. It is because only Christ's satisfaction, righteousness, and holiness make me right with God, and because I can accept this righteousness and make it mine in no other way than through faith alone.", "refs": "1 Cor. 1:30-31; Rom. 3:27-28; Rom. 4:4-5"}, {"q": 62, "lordsDay": 24, "question": "But why can our good works not be our righteousness before God, or at least a part of it?", "answer": "Because the righteousness which can pass God's scrutiny must be entirely perfect and must in every way measure up to the divine law. Even the very best we do in this life is imperfect and stained with sin.", "refs": "Gal. 3:10; Isa. 64:6; Rom. 3:20"}, {"q": 63, "lordsDay": 24, "question": "How can our good works be said to merit nothing when God promises to reward them in this life and the next?", "answer": "This reward is not earned; it is a gift of grace.", "refs": "Luke 17:10; 2 Tim. 4:7-8; Eph. 2:8-10"}, {"q": 64, "lordsDay": 24, "question": "But does this teaching not make people indifferent and wicked?", "answer": "No. It is impossible for those grafted into Christ through true faith not to produce fruits of gratitude.", "refs": "Matt. 7:17-18; John 15:5; Gal. 5:22-24"}, {"q": 65, "lordsDay": 25, "question": "It is through faith alone that we share in Christ and all his benefits: where then does that faith come from?", "answer": "The Holy Spirit produces it in our hearts by the preaching of the holy gospel, and confirms it through our use of the holy sacraments.", "refs": "Eph. 2:8; Rom. 10:17; 1 Pet. 1:23-25; Matt. 28:19-20"}, {"q": 66, "lordsDay": 25, "question": "What are sacraments?", "answer": "Sacraments are visible, holy signs and seals. They were instituted by God so that by our use of them he might make us understand more clearly the promise of the gospel, and might put his seal on that promise. And this is God's gospel promise: to grant us forgiveness of sins and eternal life by grace because of Christ's one sacrifice accomplished on the cross.", "refs": "Gen. 17:11; Rom. 4:11; Deut. 30:6; Heb. 9:8-10, 15-17"}, {"q": 67, "lordsDay": 25, "question": "Are both the Word and the sacraments then intended to focus our faith on the sacrifice of Jesus Christ on the cross as the only ground of our salvation?", "answer": "Right! In the gospel the Holy Spirit teaches us and by the holy sacraments confirms that our entire salvation rests on Christ's one sacrifice for us on the cross.", "refs": "Rom. 6:3; Gal. 3:27"}, {"q": 68, "lordsDay": 25, "question": "How many sacraments did Christ institute in the new covenant?", "answer": "Two: holy baptism and the holy supper.", "refs": "Matt. 28:19; Matt. 26:26-28; 1 Cor. 11:23-26"}, {"q": 69, "lordsDay": 26, "question": "How does holy baptism remind and assure you that Christ's one sacrifice on the cross benefits you personally?", "answer": "In this way: Christ instituted this outward washing and with it gave the promise that, as surely as water washes away the dirt from the body, so certainly his blood and Spirit wash away my soul's impurity, that is, all my sins.", "refs": "Matt. 28:19-20; Acts 2:38; Mark 16:16; Rom. 6:3-4"}, {"q": 70, "lordsDay": 26, "question": "What does it mean to be washed with Christ's blood and Spirit?", "answer": "To be washed with Christ's blood means that God, by grace, has forgiven our sins because of Christ's blood poured out for us in his sacrifice on the cross. To be washed with Christ's Spirit means that the Holy Spirit has renewed and sanctified us to be members of Christ, so that more and more we become dead to sin and live holy and blameless lives.", "refs": "Heb. 12:24; 1 Pet. 1:2; Rev. 1:5; John 1:33; John 3:5; Rom. 6:4"}, {"q": 71, "lordsDay": 26, "question": "Where has Christ promised that we are washed with his blood and Spirit as surely as we are washed with the water of baptism?", "answer": "In the institution of baptism, where he says: \"Go therefore and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit... whoever believes and is baptized will be saved, but whoever does not believe will be condemned.\" This promise is repeated when Scripture calls baptism the washing of rebirth and the washing away of sins.", "refs": "Matt. 28:19-20; Mark 16:16; Titus 3:5; Acts 22:16"}, {"q": 72, "lordsDay": 27, "question": "Does this outward washing with water itself wash away sins?", "answer": "No, only the blood of Jesus Christ and the Holy Spirit cleanse us from all sins.", "refs": "1 Pet. 3:21; 1 John 1:7; 1 Cor. 6:11"}, {"q": 73, "lordsDay": 27, "question": "Why then does the Holy Spirit call baptism the washing of rebirth and the washing away of sins?", "answer": "God does not speak this way except for a strong reason. God is teaching us by this that the blood and Spirit of Christ remove our sins just as water takes away dirt from the body. But more important, God is assuring us by this visible sign and pledge that we are as truly washed of our sins spiritually as our bodies are washed with water.", "refs": "Titus 3:5; 1 Cor. 6:11; Rev. 7:14"}, {"q": 74, "lordsDay": 27, "question": "Should infants also be baptized?", "answer": "Yes. Infants as well as adults are included in God's covenant and people, and no less than adults are promised deliverance from sin through Christ's blood and the Holy Spirit who produces faith. Therefore, by baptism, the sign of the covenant, infants should be received into the Christian church and should be distinguished from the children of unbelievers.", "refs": "Gen. 17:7; Acts 2:38-39; Luke 1:14-15; Matt. 19:14"}, {"q": 75, "lordsDay": 28, "question": "How does the holy supper remind and assure you that you share in Christ's one sacrifice on the cross and in all his gifts?", "answer": "In this way: Christ has commanded me and all believers to eat this broken bread and to drink this cup in remembrance of him. He has thereby promised that his body was offered and broken on the cross for me and his blood was poured out for me as surely as I see with my eyes the bread of the Lord broken for me and the cup shared with me. And he has promised that he himself as certainly feeds and nourishes my soul to everlasting life with his crucified body and shed blood as I receive from the hand of the minister and taste with my mouth the bread and cup of the Lord, given to me as sure signs of Christ's body and blood.", "refs": "1 Cor. 11:23-26; Matt. 26:26-28; John 6:51-58"}, {"q": 76, "lordsDay": 28, "question": "What does it mean to eat the crucified body of Christ and to drink his poured-out blood?", "answer": "First, it means to accept with a believing heart the entire suffering and death of Christ, and by believing to receive forgiveness of sins and eternal life. Second, it means to be so united more and more to Christ's blessed body by the Holy Spirit, that, although he is in heaven and we are on earth, we are flesh of his flesh and bone of his bone, and we live and are governed forever by one Spirit, as members of our body are governed by one soul.", "refs": "John 6:35, 40, 50-54; John 6:55-56; 1 Cor. 6:15-17; Eph. 5:29-30"}, {"q": 77, "lordsDay": 28, "question": "Where has Christ promised to feed and nourish believers with his body and blood as certainly as they eat of this broken bread and drink of this cup?", "answer": "In the institution of the supper: \"The Lord Jesus on the night when he was betrayed took bread, and when he had given thanks, he broke it, and said, 'This is my body which is for you. Do this in remembrance of me.' In the same way also he took the cup, after supper, saying, 'This cup is the new covenant in my blood. Do this, as often as you drink it, in remembrance of me.' For as often as you eat this bread and drink the cup, you proclaim the Lord's death until he comes.\" This promise is repeated by Paul: \"The cup of blessing that we bless, is it not a participation in the blood of Christ? The bread that we break, is it not a participation in the body of Christ? Because there is one bread, we who are many are one body, for we all partake of the one bread.\"", "refs": "1 Cor. 11:23-26; 1 Cor. 10:16-17"}, {"q": 78, "lordsDay": 29, "question": "Do the bread and wine become the real body and blood of Christ?", "answer": "No. Just as the water of baptism is not changed into Christ's blood and does not itself wash away sins but is simply a divine sign and assurance of these things, so also the holy bread of the supper does not become the actual body of Christ, even though it is called the body of Christ in keeping with the nature and language of sacraments.", "refs": "Matt. 26:26-29; 1 Cor. 10:16; 1 Cor. 11:26-28"}, {"q": 79, "lordsDay": 29, "question": "Why then does Christ call the bread his body and the cup his blood, or the new covenant in his blood, and Paul use the words, a participation in Christ's body and blood?", "answer": "Christ has good reason for these words. He wants to teach us that as bread and wine nourish the temporal life, so too his crucified body and poured-out blood are the true food and drink of our souls for eternal life. But more important, he wants to assure us, by this visible sign and pledge, that we, through the Holy Spirit's work, share in his true body and blood as surely as our mouths receive these holy signs in his remembrance, and that all of his suffering and obedience are as certainly ours as if we personally had suffered and made satisfaction for our sins.", "refs": "John 6:51, 55; 1 Cor. 10:16-17"}, {"q": 80, "lordsDay": 30, "question": "How does the Lord's supper differ from the Roman Catholic Mass?", "answer": "The Lord's supper testifies to us that we have complete forgiveness of all our sins through the one sacrifice of Jesus Christ, which he himself accomplished on the cross once for all, and that through the Holy Spirit we are grafted into Christ, who with his true body is now in heaven at the right hand of the Father where he wants us to worship him. But the Mass teaches that the living and the dead do not have their sins forgiven through the suffering of Christ unless Christ is still offered for them daily by the priests, and that Christ is bodily present under the form of bread and wine where Christ is therefore to be worshiped. Thus the Mass is basically nothing but a denial of the one sacrifice and suffering of Jesus Christ, and a condemnable idolatry.", "refs": "Heb. 9:25-28; Heb. 10:10-14; John 4:21-24; Col. 3:1"}, {"q": 81, "lordsDay": 30, "question": "Who should come to the Lord's table?", "answer": "Those who are displeased with themselves because of their sins, but who nevertheless trust that their sins are pardoned and that their remaining weakness is covered by the suffering and death of Christ, and who also desire more and more to strengthen their faith and to lead a better life. Hypocrites and those who are unrepentant, however, eat and drink judgment on themselves.", "refs": "1 Cor. 11:26-32; Ps. 51:17"}, {"q": 82, "lordsDay": 30, "question": "Should those be admitted to the Lord's supper who show by what they profess and how they live that they are unbelieving and ungodly?", "answer": "No, that would dishonor God's covenant and bring down God's wrath upon the entire congregation. Therefore, according to the instruction of Christ and his apostles, the Christian church is duty-bound to exclude such people, by the official use of the keys of the kingdom, until they change their lives.", "refs": "1 Cor. 11:17-22, 27-32; Matt. 18:15-18"}, {"q": 83, "lordsDay": 31, "question": "What are the keys of the kingdom?", "answer": "The preaching of the holy gospel and Christian discipline toward repentance. Both of them open the kingdom of heaven to believers and close it to unbelievers.", "refs": "Matt. 16:19; John 20:21-23; Matt. 18:15-18"}, {"q": 84, "lordsDay": 31, "question": "How does preaching the gospel open and close the kingdom of heaven?", "answer": "According to the command of Christ: The kingdom of heaven is opened by proclaiming and publicly declaring to all believers, each and every one, that, as often as they accept the gospel promise in true faith, God, because of Christ's merit, truly forgives all their sins. The kingdom of heaven is closed, however, by proclaiming and publicly declaring to all unbelievers and hypocrites that, as long as they do not repent, the wrath of God and eternal condemnation rest on them. God's judgment, both in this life and in the life to come, is based on this gospel testimony.", "refs": "Matt. 16:19; John 3:31-36; John 20:21-23"}, {"q": 85, "lordsDay": 31, "question": "How is the kingdom of heaven closed and opened by Christian discipline?", "answer": "According to the command of Christ: Those who, though called Christians, profess unchristian teachings or live unchristian lives, and who after repeated brotherly counsel refuse to abandon their errors and evil ways, and who after being reported to the church, that is, to those ordained by the church for this purpose, fail to respond even to the church's admonition—such persons the church excludes from the Christian community by withholding the sacraments from them, and God also excludes them from the kingdom of Christ. Such persons, when promising and demonstrating genuine reform, are received again as members of Christ and of his church.", "refs": "Matt. 18:15-18; 1 Cor. 5:1-13; 2 Cor. 2:6-11"}, {"q": 86, "lordsDay": 32, "question": "Since we have been delivered from our misery by grace through Christ without any merit of our own, why then should we do good works?", "answer": "Because Christ, having redeemed us by his blood, is also renewing us by his Spirit into his image, so that with our whole lives we may show that we are thankful to God for his benefits, and so that he may be praised through us, and so that we may be assured of our faith by its fruits, and so that by our godly living our neighbors may be won over to Christ.", "refs": "Rom. 6:13; Rom. 12:1-2; 1 Pet. 2:9-10; 2 Pet. 1:10-11; Matt. 5:14-16; 1 Pet. 3:1-2"}, {"q": 87, "lordsDay": 32, "question": "Can those who do not turn to God from their ungrateful and unrepentant ways be saved?", "answer": "By no means. Scripture tells us that no unchaste person, idolater, adulterer, thief, no covetous person, drunkard, slanderer, robber, or the like will inherit the kingdom of God.", "refs": "1 Cor. 6:9-10; Eph. 5:5-6; 1 John 3:14-15"}, {"q": 88, "lordsDay": 33, "question": "What is involved in genuine repentance or conversion?", "answer": "Two things: the dying-away of the old self, and the rising-to-life of the new self.", "refs": "Rom. 6:1-11; Eph. 4:22-24; Col. 3:5-10"}, {"q": 89, "lordsDay": 33, "question": "What is the dying-away of the old self?", "answer": "To be genuinely sorry for sin and more and more to hate it and run away from it.", "refs": "Rom. 8:13; Joel 2:12-13; Ps. 51:3-4, 17"}, {"q": 90, "lordsDay": 33, "question": "What is the rising-to-life of the new self?", "answer": "Wholehearted joy in God through Christ and a delight to do every kind of good work as God wants us to.", "refs": "Rom. 5:1; Rom. 14:17; Gal. 2:20; Rom. 6:10-11"}, {"q": 91, "lordsDay": 33, "question": "What are good works?", "answer": "Only those which are done out of true faith, conform to God's law, and are done for God's glory; and not those based on our own opinion or human tradition.", "refs": "Rom. 14:23; 1 Sam. 15:22; Eph. 2:10; 1 Cor. 10:31"}, {"q": 92, "lordsDay": 34, "question": "What is God's law?", "answer": "God spoke all these words: I am the Lord your God, who brought you out of the land of Egypt, out of the house of slavery. You shall have no other gods before me. You shall not make for yourself a carved image, or any likeness of anything that is in heaven above, or that is in the earth beneath, or that is in the water under the earth. You shall not bow down to them or serve them; for I the Lord your God am a jealous God, visiting the iniquity of the fathers on the children to the third and the fourth generation of those who hate me, but showing steadfast love to thousands of those who love me and keep my commandments. You shall not take the name of the Lord your God in vain, for the Lord will not hold him guiltless who takes his name in vain. Remember the Sabbath day, to keep it holy. Six days you shall labor, and do all your work, but the seventh day is a Sabbath to the Lord your God. Honor your father and your mother, that your days may be long in the land which the Lord your God gives you. You shall not murder. You shall not commit adultery. You shall not steal. You shall not bear false witness against your neighbor. You shall not covet your neighbor's house; you shall not covet your neighbor's wife, or his male servant, or his female servant, or his ox, or his donkey, or anything that is your neighbor's.", "refs": "Ex. 20:1-17; Deut. 5:6-21"}, {"q": 93, "lordsDay": 34, "question": "How are these commandments divided?", "answer": "Into two tables. The first has four commandments, teaching us how we ought to live in relation to God. The second has six commandments, teaching us what we owe our neighbor.", "refs": "Matt. 22:37-40"}, {"q": 94, "lordsDay": 34, "question": "What is the Lord requiring in the first commandment?", "answer": "That I, not wanting to endanger my own salvation, avoid and shun all idolatry, sorcery, superstitious rites, and prayer to saints or to other creatures. That I rightly know the only true God, trust him alone, and look to God for every good thing humbly and patiently, and love, fear, and honor God with all my heart. In short, that I give up anything rather than go against God's will in any way.", "refs": "1 Cor. 6:9-10; 1 John 5:21; Lev. 19:31; Deut. 18:9-12; John 17:3; Jer. 17:5, 7; 1 Pet. 5:5-6; Matt. 4:10"}, {"q": 95, "lordsDay": 34, "question": "What is idolatry?", "answer": "Idolatry is having or inventing something in which one trusts in place of or alongside of the only true God, who has revealed himself in his Word.", "refs": "Eph. 5:5; 1 Chron. 16:26; Phil. 3:19; Gal. 4:8-9"}, {"q": 96, "lordsDay": 35, "question": "What is God requiring in the second commandment?", "answer": "That we in no way make any image of God nor worship him in any other way than has been commanded in God's Word.", "refs": "Deut. 4:15-19; Isa. 40:18-25; John 4:23-24"}, {"q": 97, "lordsDay": 35, "question": "May we not make any image at all?", "answer": "God cannot and may not be visibly portrayed in any way. Although creatures may be portrayed, yet God forbids making or having such images if one's intention is to worship them or to serve God through them.", "refs": "Ex. 34:13-14, 17; Deut. 4:15-16; Ex. 20:4-5"}, {"q": 98, "lordsDay": 35, "question": "But may not images be permitted in churches in place of books for the unlearned?", "answer": "No, we should not try to be wiser than God. God wants the Christian community instructed by the living preaching of his Word—not by idols that cannot even talk.", "refs": "Jer. 10:8; Hab. 2:18-20; Rom. 10:14-17; 2 Tim. 3:16-17"}, {"q": 99, "lordsDay": 36, "question": "What is required in the third commandment?", "answer": "That we neither blaspheme nor misuse the name of God by cursing, perjury, or unnecessary oaths, nor share in such horrible sins by being silent bystanders. In summary, we should use the holy name of God only with reverence and awe, so that we may properly confess him, pray to him, and glorify him in all our words and works.", "refs": "Lev. 24:10-17; Matt. 5:37; James 5:12; Ps. 99:1-5"}, {"q": 100, "lordsDay": 36, "question": "Is blasphemy of God's name by swearing and cursing really such serious sin that God is angry also with those who do not do all they can to help prevent and forbid it?", "answer": "Yes, indeed. No sin is greater or provokes God's wrath more than blaspheming his name. That is why God commanded it to be punished with death.", "refs": "Lev. 5:1; Lev. 24:15-16"}, {"q": 101, "lordsDay": 37, "question": "But may we swear an oath in God's name if we do it reverently?", "answer": "Yes, when the government demands it, or when necessity requires it, in order to maintain and promote truth and trustworthiness for God's glory and our neighbor's good. Such oaths are grounded in God's Word and were rightly used in the Old and New Testaments.", "refs": "Deut. 6:13; Deut. 10:20; Jer. 4:1-2; Heb. 6:16"}, {"q": 102, "lordsDay": 37, "question": "May we also swear by saints or other creatures?", "answer": "No. A legitimate oath means calling upon God, who alone knows the heart, to witness to my truthfulness and to punish me if I swear falsely. No creature is worthy of such honor.", "refs": "Matt. 5:34-37; James 5:12"}, {"q": 103, "lordsDay": 38, "question": "What is God's will for you in the fourth commandment?", "answer": "First, that the ministry of the gospel and schools for it be maintained, and that, especially on the festive day of rest, I diligently attend the assembly of God's people to learn what God's Word teaches, to participate in the sacraments, to pray to God publicly, and to bring Christian offerings for the poor. Second, that all the days of my life I rest from my evil ways, let the Lord work in me through his Spirit, and so begin in this life the eternal Sabbath.", "refs": "Deut. 6:4-9; 1 Cor. 9:13-14; Ps. 40:9-10; Heb. 10:23-25; Isa. 66:23; Heb. 4:9-11"}, {"q": 104, "lordsDay": 39, "question": "What is God's will for you in the fifth commandment?", "answer": "That I show honor, love, and faithfulness to my father and mother and to all those in authority over me, and submit myself with proper obedience to their good teaching and discipline, bearing patiently with their weaknesses and shortcomings, since it is God's will to govern us by their hand.", "refs": "Eph. 5:21-22; Eph. 6:1-9; Col. 3:18-21; Prov. 1:8-9; Prov. 4:1"}, {"q": 105, "lordsDay": 40, "question": "What is God's will for you in the sixth commandment?", "answer": "I am not to belittle, hate, insult, or kill my neighbor—not by my thoughts, my words, my look or gesture, and certainly not by actual deeds—and I am not to be party to this in others; rather, I am to put away all desire for revenge. I am not to harm or recklessly endanger myself either. Prevention of murder is also why government is armed with the sword.", "refs": "Matt. 5:21-22; Matt. 26:52; Rom. 13:4; Gen. 9:6"}, {"q": 106, "lordsDay": 40, "question": "Does this commandment refer only to killing?", "answer": "By forbidding murder God teaches us that he hates the root of murder: envy, hatred, anger, vindictiveness. In God's sight all such are disguised forms of murder.", "refs": "Gal. 5:19-21; James 1:19-20; 1 John 3:15"}, {"q": 107, "lordsDay": 40, "question": "Is it enough then that we do not kill our neighbor in any such way?", "answer": "No. By condemning envy, hatred, and anger God wants us to love our neighbor as ourselves, to be patient, peace-loving, gentle, merciful, and friendly to them, to protect them from harm as much as we can, and to do good even to our enemies.", "refs": "Matt. 7:12; Rom. 12:10, 18; Matt. 5:44-45"}, {"q": 108, "lordsDay": 41, "question": "What does the seventh commandment teach us?", "answer": "That God condemns all unchastity, and that therefore we should thoroughly detest it and, married or single, live decent and chaste lives.", "refs": "Lev. 18:1-30; 1 Cor. 6:18-20; Heb. 13:4"}, {"q": 109, "lordsDay": 41, "question": "Does God, in this commandment, forbid only such scandalous sins as adultery?", "answer": "We are temples of the Holy Spirit, body and soul, and God wants both to be kept clean and holy. That is why God forbids all unchaste actions, looks, talk, thoughts, or desires, and whatever might tempt us to unchastity.", "refs": "1 Cor. 6:18-20; Matt. 5:27-28; Eph. 5:3-4"}, {"q": 110, "lordsDay": 42, "question": "What does God forbid in the eighth commandment?", "answer": "God forbids not only outright theft and robbery but also such wicked schemes and devices as false weights and measures, deceptive advertising, counterfeit money, and usury; we must not defraud our neighbor in any way, whether by force or means that only appear legitimate. In addition God forbids all greed and pointless squandering of his gifts.", "refs": "Ex. 20:15; Lev. 19:35-36; Prov. 11:1; Luke 3:14; 1 Cor. 6:9-10; Luke 12:15"}, {"q": 111, "lordsDay": 42, "question": "What does God require of you in this commandment?", "answer": "That I do whatever I can for my neighbor's good, that I treat others as I would like them to treat me, and that I work faithfully so that I may share with those in need.", "refs": "Matt. 7:12; Eph. 4:28"}, {"q": 112, "lordsDay": 43, "question": "What is the aim of the ninth commandment?", "answer": "That I do not lie or deceive anyone, whether in matters of law or in any other matter, but that I hold to the truth and speak it honestly, especially about my neighbor. I must guard my neighbor's good name as I do my own, and I must not slander, gossip, or condemn anyone unheard.", "refs": "Ex. 23:1-3; Ps. 15:1-3; Rom. 1:29-32; Matt. 7:1-2"}, {"q": 113, "lordsDay": 44, "question": "What does the tenth commandment require of us?", "answer": "That not even the slightest thought or desire contrary to any of God's commandments should ever arise in our hearts. Rather, with all our hearts we should always hate sin and delight in righteousness.", "refs": "Rom. 7:7-8; Ps. 19:7-14; Ps. 139:23-24"}, {"q": 114, "lordsDay": 44, "question": "But can those converted to God obey these commandments perfectly?", "answer": "No. In this life even the holiest have only a small beginning of this obedience. Nevertheless, with all seriousness of purpose, they do begin to live according to all, not only some, of God's commandments.", "refs": "1 John 1:8-10; Rom. 7:14-15; Ps. 1:1-2"}, {"q": 115, "lordsDay": 44, "question": "Since no one in this life can obey the Ten Commandments perfectly, why does God want them preached so pointedly?", "answer": "First, so that the longer we live the more we may come to know our sinfulness and the more eagerly look to Christ for forgiveness of sins and righteousness. Second, so that we may never stop striving, and never stop praying to God for the grace of the Holy Spirit, to be renewed more and more after God's image, until after this life we reach our goal: perfection.", "refs": "1 John 1:9; Rom. 7:24-25; 1 Cor. 9:24-26"}, {"q": 116, "lordsDay": 45, "question": "Why do Christians need to pray?", "answer": "Because prayer is the most important part of the thankfulness God requires of us. And also because God gives his grace and Holy Spirit only to those who continually and with heartfelt longing ask God for these gifts and thank God for them.", "refs": "Ps. 50:14-15; 1 Thess. 5:16-18; Matt. 7:7-8; Luke 11:9-13"}, {"q": 117, "lordsDay": 45, "question": "What belongs to a prayer which pleases God and is heard by him?", "answer": "First, we must from the heart call upon the one true God only, who has revealed himself in his Word, for all that he has commanded us to pray. Second, we must fully recognize our need and misery, so that we humble ourselves in God's majestic presence. Third, we must rest on this unshakable foundation: even though we do not deserve it, God will surely listen to our prayer because of Christ our Lord, as he has promised us in his Word.", "refs": "Ps. 145:18-20; John 4:22-24; 2 Chron. 7:14; Dan. 9:5-19; John 14:13-14; James 1:6-8"}, {"q": 118, "lordsDay": 45, "question": "What did God command us to pray for?", "answer": "Everything we need, spiritually and physically, which our Lord Jesus Christ included in the prayer he himself taught us.", "refs": "James 1:17; Matt. 6:33; Matt. 6:9-13"}, {"q": 119, "lordsDay": 45, "question": "What is this prayer?", "answer": "Our Father in heaven, hallowed be your name. Your kingdom come. Your will be done, on earth as it is in heaven. Give us this day our daily bread. And forgive us our debts, as we also have forgiven our debtors. And lead us not into temptation, but deliver us from evil. For yours is the kingdom and the power and the glory forever. Amen.", "refs": "Matt. 6:9-13; Luke 11:2-4"}, {"q": 120, "lordsDay": 46, "question": "Why did Christ command us to call God \"our Father\"?", "answer": "To awaken in us at the very beginning of our prayer the childlike reverence and trust toward God that should be basic to our prayer: God has become our Father through Christ and will much less deny us what we ask him in faith than our human fathers would refuse us earthly things.", "refs": "Matt. 7:9-11; Luke 11:11-13; Eph. 3:14-15; Rom. 8:15-16"}, {"q": 121, "lordsDay": 46, "question": "Why the words \"in heaven\"?", "answer": "These words teach us not to think of God's heavenly majesty in an earthly manner, and to expect everything for body and soul from his almighty power.", "refs": "Jer. 23:23-24; Acts 17:24-25; Matt. 6:25-34"}, {"q": 122, "lordsDay": 47, "question": "What does the first petition mean?", "answer": "\"Hallowed be your name\" means: Help us to really know you, to bless, worship, and praise you for all your works and for all that shines forth from them: your almighty power, wisdom, kindness, justice, mercy, and truth. Help us also to arrange our whole lives—our thoughts, words, and actions—so that your name will never be blasphemed because of us but always honored and praised.", "refs": "John 17:3; Ps. 145:1-3; Ps. 71:8; Matt. 5:16"}, {"q": 123, "lordsDay": 48, "question": "What does the second petition mean?", "answer": "\"Your kingdom come\" means: Rule us by your Word and Spirit in such a way that more and more we submit to you. Preserve and increase your church. Destroy the devil's work; destroy every force which revolts against you and every conspiracy against your holy Word. Do this until your kingdom fully comes, when you will be all in all.", "refs": "Ps. 119:5; Matt. 6:33; Matt. 16:18; 1 John 3:8; Rev. 22:20; 1 Cor. 15:28"}, {"q": 124, "lordsDay": 49, "question": "What does the third petition mean?", "answer": "\"Your will be done, on earth as it is in heaven\" means: Help us and all people to reject our own wills and to obey your will, which alone is good, without any back talk. Help everyone carry out the work he is called to, as willingly and faithfully as the angels in heaven.", "refs": "Matt. 7:21; Luke 22:42; Rom. 12:1-2; Ps. 103:20-21"}, {"q": 125, "lordsDay": 50, "question": "What does the fourth petition mean?", "answer": "\"Give us this day our daily bread\" means: Do take care of all our physical needs so that we come to know that you are the only source of everything good, and that neither our work and worry nor your gifts can do us any good without your blessing. And so help us to give up our trust in creatures and place it in you alone.", "refs": "Ps. 104:27-30; Matt. 6:25-34; Ps. 127:1-2; 1 Cor. 15:58"}, {"q": 126, "lordsDay": 51, "question": "What does the fifth petition mean?", "answer": "\"And forgive us our debts, as we also have forgiven our debtors\" means: Because of Christ's blood, do not hold against us, poor sinners that we are, any of the sins we do or the evil that constantly clings to us. Forgive us just as we are fully determined, as evidence of your grace in us, to forgive our neighbors.", "refs": "Ps. 51:1-4; 1 John 2:1-2; Matt. 6:14-15; Eph. 4:32"}, {"q": 127, "lordsDay": 52, "question": "What does the sixth petition mean?", "answer": "\"And lead us not into temptation, but deliver us from evil\" means: By ourselves we are too weak to hold our own even for a moment. And our sworn enemies—the devil, the world, and our own flesh—never stop attacking us. And so, Lord, uphold us and make us strong with the strength of your Holy Spirit, so that we may not go down to defeat in this spiritual struggle, but may firmly resist our enemies until we finally win the complete victory.", "refs": "1 Pet. 5:8-9; Eph. 6:10-13; Matt. 26:41; 1 Cor. 10:13"}, {"q": 128, "lordsDay": 52, "question": "How do you conclude your prayer?", "answer": "\"For yours is the kingdom and the power and the glory forever\" means: All this we ask of you because, as our king, having power over all things, you are both willing and able to give us all that is good; and because not we but your holy name should receive all the praise, forever.", "refs": "Rom. 10:12-13; 2 Pet. 2:9; John 14:13; Ps. 115:1"}, {"q": 129, "lordsDay": 52, "question": "What does that little word \"Amen\" express?", "answer": "\"Amen\" means: This is sure to be! It is even more sure that God listens to my prayer than that I really desire what I pray for.", "refs": "2 Cor. 1:20; 2 Tim. 2:13; Isa. 65:24"}];
+const WESTMINSTER = [{"q": 1, "question": "What is the chief end of man?", "answer": "Man's chief end is to glorify God, and to enjoy him forever.", "refs": "Ps. 86:9; Isa. 60:21; Rom. 11:36; 1 Cor. 10:31; Ps. 73:25-28"}, {"q": 2, "question": "What rule has God given to direct us how we may glorify and enjoy him?", "answer": "The Word of God, which is contained in the Scriptures of the Old and New Testaments, is the only rule to direct us how we may glorify and enjoy him.", "refs": "2 Tim. 3:16; Eph. 2:20; 1 John 1:3-4"}, {"q": 3, "question": "What do the Scriptures principally teach?", "answer": "The Scriptures principally teach what man is to believe concerning God, and what duty God requires of man.", "refs": "2 Tim. 1:13; 2 Tim. 3:15-17"}, {"q": 4, "question": "What is God?", "answer": "God is a Spirit, infinite, eternal, and unchangeable, in his being, wisdom, power, holiness, justice, goodness, and truth.", "refs": "John 4:24; Job 11:7-9; Ps. 90:2; James 1:17; Ex. 34:6-7"}, {"q": 5, "question": "Are there more Gods than one?", "answer": "There is but one only, the living and true God.", "refs": "Deut. 6:4; Jer. 10:10; 1 Cor. 8:4, 6"}, {"q": 6, "question": "How many persons are there in the Godhead?", "answer": "There are three persons in the Godhead: the Father, the Son, and the Holy Ghost; and these three are one God, the same in substance, equal in power and glory.", "refs": "1 John 5:7; Matt. 3:16-17; Matt. 28:19; 2 Cor. 13:14"}, {"q": 7, "question": "What are the decrees of God?", "answer": "The decrees of God are his eternal purpose, according to the counsel of his will, whereby, for his own glory, he has foreordained whatsoever comes to pass.", "refs": "Eph. 1:11-12; Rom. 11:33; Rom. 9:22-23"}, {"q": 8, "question": "How does God execute his decrees?", "answer": "God executes his decrees in the works of creation and providence.", "refs": "Rev. 4:11; Dan. 4:35; Isa. 40:26; Ps. 135:6"}, {"q": 9, "question": "What is the work of creation?", "answer": "The work of creation is God's making all things of nothing, by the word of his power, in the space of six days, and all very good.", "refs": "Gen. 1:1; Heb. 11:3; Gen. 1:31"}, {"q": 10, "question": "How did God create man?", "answer": "God created man male and female, after his own image, in knowledge, righteousness, and holiness, with dominion over the creatures.", "refs": "Gen. 1:27; Col. 3:10; Eph. 4:24; Gen. 1:28"}, {"q": 11, "question": "What are God's works of providence?", "answer": "God's works of providence are, his most holy, wise, and powerful preserving and governing all his creatures, and all their actions.", "refs": "Ps. 145:17; Ps. 104:24; Acts 17:25, 28; Ps. 103:19; Matt. 10:29-31"}, {"q": 12, "question": "What special act of providence did God exercise toward man in the estate wherein he was created?", "answer": "When God had created man, he entered into a covenant of life with him, upon condition of perfect obedience; forbidding him to eat of the tree of the knowledge of good and evil, upon pain of death.", "refs": "Gal. 3:12; Gen. 2:16-17"}, {"q": 13, "question": "Did our first parents continue in the estate wherein they were created?", "answer": "Our first parents, being left to the freedom of their own will, fell from the estate wherein they were created, by sinning against God.", "refs": "Gen. 3:6-8, 13; Eccl. 7:29"}, {"q": 14, "question": "What is sin?", "answer": "Sin is any want of conformity unto, or transgression of, the law of God.", "refs": "1 John 3:4; James 4:17"}, {"q": 15, "question": "What was the sin whereby our first parents fell from the estate wherein they were created?", "answer": "The sin whereby our first parents fell from the estate wherein they were created was their eating the forbidden fruit.", "refs": "Gen. 3:6, 12-13; 2 Cor. 11:3"}, {"q": 16, "question": "Did all mankind fall in Adam's first transgression?", "answer": "The covenant being made with Adam, not only for himself, but for his posterity, all mankind, descending from him by ordinary generation, sinned in him, and fell with him, in his first transgression.", "refs": "Gen. 2:16-17; Rom. 5:12, 15-19; 1 Cor. 15:21-22"}, {"q": 17, "question": "Into what estate did the fall bring mankind?", "answer": "The fall brought mankind into an estate of sin and misery.", "refs": "Rom. 5:12; Rom. 3:16, 23"}, {"q": 18, "question": "Wherein consists the sinfulness of that estate whereinto man fell?", "answer": "The sinfulness of that estate whereinto man fell, consists in the guilt of Adam's first sin, the want of original righteousness, and the corruption of his whole nature, which is commonly called Original Sin; together with all actual transgressions which proceed from it.", "refs": "Rom. 5:19; Rom. 3:10-19; Eph. 2:1-3; Gal. 5:19-21; Matt. 15:19"}, {"q": 19, "question": "What is the misery of that estate whereinto man fell?", "answer": "All mankind by their fall lost communion with God, are under his wrath and curse, and so made liable to all miseries in this life, to death itself, and to the pains of hell forever.", "refs": "Gen. 3:8, 24; Eph. 2:2-3; Gal. 3:10; Rom. 6:23; Matt. 25:41, 46"}, {"q": 20, "question": "Did God leave all mankind to perish in the estate of sin and misery?", "answer": "God, having, out of his mere good pleasure, from all eternity, elected some to everlasting life, did enter into a covenant of grace, to deliver them out of the estate of sin and misery, and to bring them into an estate of salvation by a Redeemer.", "refs": "Eph. 1:4-5; Rom. 5:21; Titus 3:4-7; Gal. 3:21-22"}, {"q": 21, "question": "Who is the Redeemer of God's elect?", "answer": "The only Redeemer of God's elect is the Lord Jesus Christ, who, being the eternal Son of God, became man, and so was, and continues to be, God and man in two distinct natures, and one person, forever.", "refs": "1 Tim. 2:5-6; John 1:14; Gal. 4:4; Rom. 9:5; Col. 2:9; Heb. 7:24-25"}, {"q": 22, "question": "How did Christ, being the Son of God, become man?", "answer": "Christ, the Son of God, became man, by taking to himself a true body, and a reasonable soul, being conceived by the power of the Holy Ghost, in the womb of the Virgin Mary, and born of her, yet without sin.", "refs": "John 1:14; Matt. 26:38; Luke 1:27, 31, 35, 42; Heb. 4:15"}, {"q": 23, "question": "What offices does Christ execute as our Redeemer?", "answer": "Christ, as our Redeemer, executes the offices of a prophet, of a priest, and of a king, both in his estate of humiliation and exaltation.", "refs": "Acts 3:22; Heb. 5:5-6; Ps. 2:6"}, {"q": 24, "question": "How does Christ execute the office of a prophet?", "answer": "Christ executes the office of a prophet, in revealing to us, by his Word and Spirit, the will of God for our salvation.", "refs": "John 1:18; John 15:15; John 20:31; 1 Pet. 1:10-12"}, {"q": 25, "question": "How does Christ execute the office of a priest?", "answer": "Christ executes the office of a priest, in his once offering up of himself a sacrifice to satisfy divine justice, and reconcile us to God, and in his making continual intercession for us.", "refs": "Heb. 9:14, 28; Heb. 2:17; Heb. 7:24-25"}, {"q": 26, "question": "How does Christ execute the office of a king?", "answer": "Christ executes the office of a king, in subduing us to himself, in ruling and defending us, and in restraining and conquering all his and our enemies.", "refs": "Ps. 110:3; Matt. 28:18-20; Isa. 33:22; 1 Cor. 15:25"}, {"q": 27, "question": "Wherein did Christ's humiliation consist?", "answer": "Christ's humiliation consisted in his being born, and that in a low condition, made under the law, undergoing the miseries of this life, the wrath of God, and the cursed death of the cross; in being buried, and continuing under the power of death for a time.", "refs": "Luke 2:7; Gal. 4:4; Isa. 53:2-3; Luke 22:44; Matt. 27:46; Phil. 2:8; 1 Cor. 15:3-4"}, {"q": 28, "question": "Wherein consists Christ's exaltation?", "answer": "Christ's exaltation consists in his rising again from the dead on the third day, in ascending up into heaven, in sitting at the right hand of God the Father, and in coming to judge the world at the last day.", "refs": "1 Cor. 15:4; Mark 16:19; Acts 1:11; Acts 17:31"}, {"q": 29, "question": "How are we made partakers of the redemption purchased by Christ?", "answer": "We are made partakers of the redemption purchased by Christ, by the effectual application of it to us by his Holy Spirit.", "refs": "John 1:11-12; Titus 3:4-6"}, {"q": 30, "question": "How does the Spirit apply to us the redemption purchased by Christ?", "answer": "The Spirit applies to us the redemption purchased by Christ, by working faith in us, and thereby uniting us to Christ in our effectual calling.", "refs": "Eph. 2:8; John 15:5; Eph. 3:17"}, {"q": 31, "question": "What is effectual calling?", "answer": "Effectual calling is the work of God's Spirit, whereby, convincing us of our sin and misery, enlightening our minds in the knowledge of Christ, and renewing our wills, he does persuade and enable us to embrace Jesus Christ, freely offered to us in the gospel.", "refs": "2 Tim. 1:9; Acts 2:37; Acts 26:18; Ezek. 36:26; John 6:44-45; Phil. 2:13"}, {"q": 32, "question": "What benefits do they that are effectually called partake of in this life?", "answer": "They that are effectually called do in this life partake of justification, adoption, and sanctification, and the several benefits which in this life do either accompany or flow from them.", "refs": "Rom. 8:30; 1 Cor. 1:26, 30-31; Eph. 1:5"}, {"q": 33, "question": "What is justification?", "answer": "Justification is an act of God's free grace, wherein he pardons all our sins, and accepts us as righteous in his sight, only for the righteousness of Christ imputed to us, and received by faith alone.", "refs": "Rom. 3:24-25; Rom. 4:6-8; 2 Cor. 5:21; Gal. 2:16"}, {"q": 34, "question": "What is adoption?", "answer": "Adoption is an act of God's free grace, whereby we are received into the number, and have a right to all the privileges, of the sons of God.", "refs": "1 John 3:1; John 1:12; Rom. 8:17"}, {"q": 35, "question": "What is sanctification?", "answer": "Sanctification is the work of God's free grace, whereby we are renewed in the whole man after the image of God, and are enabled more and more to die unto sin, and live unto righteousness.", "refs": "2 Thess. 2:13; Eph. 4:23-24; Rom. 6:11"}, {"q": 36, "question": "What are the benefits which in this life do accompany or flow from justification, adoption, and sanctification?", "answer": "The benefits which in this life do accompany or flow from justification, adoption, and sanctification, are, assurance of God's love, peace of conscience, joy in the Holy Ghost, increase of grace, and perseverance therein to the end.", "refs": "Rom. 5:1-2, 5; Prov. 4:18; 1 Pet. 1:5"}, {"q": 37, "question": "What benefits do believers receive from Christ at death?", "answer": "The souls of believers are at their death made perfect in holiness, and do immediately pass into glory; and their bodies, being still united to Christ, do rest in their graves till the resurrection.", "refs": "Heb. 12:23; 2 Cor. 5:1, 6, 8; Phil. 1:23; Luke 23:43; 1 Thess. 4:14"}, {"q": 38, "question": "What benefits do believers receive from Christ at the resurrection?", "answer": "At the resurrection, believers being raised up in glory, shall be openly acknowledged and acquitted in the day of judgment, and made perfectly blessed in the full enjoying of God to all eternity.", "refs": "1 Cor. 15:43; Matt. 25:23; 1 John 3:2; 1 Cor. 13:12"}, {"q": 39, "question": "What is the duty which God requires of man?", "answer": "The duty which God requires of man is obedience to his revealed will.", "refs": "Mic. 6:8; 1 Sam. 15:22"}, {"q": 40, "question": "What did God at first reveal to man for the rule of his obedience?", "answer": "The rule which God at first revealed to man for his obedience was the moral law.", "refs": "Rom. 2:14-15; Rom. 10:5"}, {"q": 41, "question": "Where is the moral law summarily comprehended?", "answer": "The moral law is summarily comprehended in the ten commandments.", "refs": "Deut. 10:4; Matt. 19:17-19"}, {"q": 42, "question": "What is the sum of the ten commandments?", "answer": "The sum of the ten commandments is, to love the Lord our God with all our heart, with all our soul, with all our strength, and with all our mind; and our neighbor as ourselves.", "refs": "Matt. 22:37-40"}, {"q": 43, "question": "What is the preface to the ten commandments?", "answer": "The preface to the ten commandments is in these words, I am the Lord thy God, which have brought thee out of the land of Egypt, out of the house of bondage.", "refs": "Ex. 20:2"}, {"q": 44, "question": "What does the preface to the ten commandments teach us?", "answer": "The preface to the ten commandments teaches us, that because God is the Lord, and our God, and Redeemer, therefore we are bound to keep all his commandments.", "refs": "Luke 1:74-75; 1 Pet. 1:15-19"}, {"q": 45, "question": "Which is the first commandment?", "answer": "The first commandment is, Thou shalt have no other gods before me.", "refs": "Ex. 20:3"}, {"q": 46, "question": "What is required in the first commandment?", "answer": "The first commandment requires us to know and acknowledge God to be the only true God, and our God; and to worship and glorify him accordingly.", "refs": "1 Chron. 28:9; Deut. 26:17; Matt. 4:10"}, {"q": 47, "question": "What is forbidden in the first commandment?", "answer": "The first commandment forbids the denying, or not worshiping and glorifying, the true God as God, and our God; and the giving of that worship and glory to any other, which is due to him alone.", "refs": "Ps. 14:1; Rom. 1:20-21; Rom. 1:25-26"}, {"q": 48, "question": "What are we specially taught by these words \"before me\" in the first commandment?", "answer": "These words \"before me\" in the first commandment teach us, that God, who sees all things, takes notice of, and is much displeased with, the sin of having any other god.", "refs": "Ps. 44:20-21; Ezek. 8:5-6, 12"}, {"q": 49, "question": "Which is the second commandment?", "answer": "The second commandment is, Thou shalt not make unto thee any graven image, or any likeness of any thing that is in heaven above, or that is in the earth beneath, or that is in the water under the earth: thou shalt not bow down thyself to them, nor serve them: for I the Lord thy God am a jealous God, visiting the iniquity of the fathers upon the children unto the third and fourth generation of them that hate me, and shewing mercy unto thousands of them that love me, and keep my commandments.", "refs": "Ex. 20:4-6"}, {"q": 50, "question": "What is required in the second commandment?", "answer": "The second commandment requires the receiving, observing, and keeping pure and entire, all such religious worship and ordinances as God has appointed in his Word.", "refs": "Deut. 32:46; Matt. 28:20"}, {"q": 51, "question": "What is forbidden in the second commandment?", "answer": "The second commandment forbids the worshiping of God by images, or any other way not appointed in his Word.", "refs": "Deut. 4:15-19; Ex. 32:5, 8"}, {"q": 52, "question": "What are the reasons annexed to the second commandment?", "answer": "The reasons annexed to the second commandment are, God's sovereignty over us, his propriety in us, and the zeal he has to his own worship.", "refs": "Ps. 95:2-3, 6; Ex. 20:5; Ps. 45:11"}, {"q": 53, "question": "Which is the third commandment?", "answer": "The third commandment is, Thou shalt not take the name of the Lord thy God in vain; for the Lord will not hold him guiltless that taketh his name in vain.", "refs": "Ex. 20:7"}, {"q": 54, "question": "What is required in the third commandment?", "answer": "The third commandment requires the holy and reverent use of God's names, titles, attributes, ordinances, Word, and works.", "refs": "Ps. 29:2; Matt. 6:9; Deut. 28:58"}, {"q": 55, "question": "What is forbidden in the third commandment?", "answer": "The third commandment forbids all profaning or abusing of anything whereby God makes himself known.", "refs": "Mal. 1:6-7, 12; Mal. 2:2"}, {"q": 56, "question": "What is the reason annexed to the third commandment?", "answer": "The reason annexed to the third commandment is, that however the breakers of this commandment may escape punishment from men, yet the Lord our God will not suffer them to escape his righteous judgment.", "refs": "Deut. 28:58-59; 1 Sam. 3:13"}, {"q": 57, "question": "Which is the fourth commandment?", "answer": "The fourth commandment is, Remember the sabbath day, to keep it holy. Six days shalt thou labour, and do all thy work: but the seventh day is the sabbath of the Lord thy God: in it thou shalt not do any work, thou, nor thy son, nor thy daughter, thy manservant, nor thy maidservant, nor thy cattle, nor thy stranger that is within thy gates: for in six days the Lord made heaven and earth, the sea, and all that in them is, and rested the seventh day: wherefore the Lord blessed the sabbath day, and hallowed it.", "refs": "Ex. 20:8-11"}, {"q": 58, "question": "What is required in the fourth commandment?", "answer": "The fourth commandment requires the keeping holy to God such set times as he has appointed in his Word; expressly one whole day in seven, to be a holy sabbath to himself.", "refs": "Deut. 5:12-14; Lev. 19:30"}, {"q": 59, "question": "Which day of the seven has God appointed to be the weekly sabbath?", "answer": "From the beginning of the world to the resurrection of Christ, God appointed the seventh day of the week to be the weekly sabbath; and the first day of the week ever since, to continue to the end of the world, which is the Christian sabbath.", "refs": "Gen. 2:2-3; 1 Cor. 16:1-2; Acts 20:7"}, {"q": 60, "question": "How is the sabbath to be sanctified?", "answer": "The sabbath is to be sanctified by a holy resting all that day, even from such worldly employments and recreations as are lawful on other days; and spending the whole time in the public and private exercises of God's worship, except so much as is to be taken up in the works of necessity and mercy.", "refs": "Ex. 20:8, 10; Lev. 23:3; Isa. 58:13-14; Matt. 12:11-12"}, {"q": 61, "question": "What is forbidden in the fourth commandment?", "answer": "The fourth commandment forbids the omission or careless performance of the duties required, and the profaning the day by idleness, or doing that which is in itself sinful, or by unnecessary thoughts, words, or works, about our worldly employments or recreations.", "refs": "Ezek. 22:26; Amos 8:5; Mal. 1:13"}, {"q": 62, "question": "What are the reasons annexed to the fourth commandment?", "answer": "The reasons annexed to the fourth commandment are, God's allowing us six days of the week for our own employments, his challenging a special propriety in the seventh, his own example, and his blessing the sabbath day.", "refs": "Ex. 20:9; Ex. 31:15-17; Gen. 2:3"}, {"q": 63, "question": "Which is the fifth commandment?", "answer": "The fifth commandment is, Honour thy father and thy mother: that thy days may be long upon the land which the Lord thy God giveth thee.", "refs": "Ex. 20:12"}, {"q": 64, "question": "What is required in the fifth commandment?", "answer": "The fifth commandment requires the preserving the honour, and performing the duties, belonging to every one in their several places and relations, as superiors, inferiors, or equals.", "refs": "Eph. 5:21-22; Eph. 6:1, 5; Rom. 13:1"}, {"q": 65, "question": "What is forbidden in the fifth commandment?", "answer": "The fifth commandment forbids the neglecting of, or doing anything against, the honour and duty which belongs to every one in their several places and relations.", "refs": "Matt. 15:4-6; Rom. 13:8"}, {"q": 66, "question": "What is the reason annexed to the fifth commandment?", "answer": "The reason annexed to the fifth commandment is, a promise of long life and prosperity, as far as it shall serve for God's glory and their own good, to all such as keep this commandment.", "refs": "Eph. 6:2-3; Deut. 5:16"}, {"q": 67, "question": "Which is the sixth commandment?", "answer": "The sixth commandment is, Thou shalt not kill.", "refs": "Ex. 20:13"}, {"q": 68, "question": "What is required in the sixth commandment?", "answer": "The sixth commandment requires all lawful endeavours to preserve our own life, and the life of others.", "refs": "Eph. 5:28-29; Ps. 82:3-4; 1 Kings 18:4"}, {"q": 69, "question": "What is forbidden in the sixth commandment?", "answer": "The sixth commandment forbids the taking away of our own life, or the life of our neighbour unjustly, or whatsoever tends thereunto.", "refs": "Acts 16:28; Gen. 9:6; Matt. 5:22"}, {"q": 70, "question": "Which is the seventh commandment?", "answer": "The seventh commandment is, Thou shalt not commit adultery.", "refs": "Ex. 20:14"}, {"q": 71, "question": "What is required in the seventh commandment?", "answer": "The seventh commandment requires the preservation of our own and our neighbour's chastity, in heart, speech, and behaviour.", "refs": "1 Thess. 4:3-5; 1 Cor. 7:2-3; Eph. 5:11-12"}, {"q": 72, "question": "What is forbidden in the seventh commandment?", "answer": "The seventh commandment forbids all unchaste thoughts, words, and actions.", "refs": "Matt. 5:28; Eph. 5:3-4"}, {"q": 73, "question": "Which is the eighth commandment?", "answer": "The eighth commandment is, Thou shalt not steal.", "refs": "Ex. 20:15"}, {"q": 74, "question": "What is required in the eighth commandment?", "answer": "The eighth commandment requires the lawful procuring and furthering the wealth and outward estate of ourselves and others.", "refs": "Gen. 30:30; 1 Tim. 5:8; Lev. 25:35"}, {"q": 75, "question": "What is forbidden in the eighth commandment?", "answer": "The eighth commandment forbids whatsoever does or may unjustly hinder our own or our neighbour's wealth or outward estate.", "refs": "1 Tim. 6:9-10; Eph. 4:28"}, {"q": 76, "question": "Which is the ninth commandment?", "answer": "The ninth commandment is, Thou shalt not bear false witness against thy neighbour.", "refs": "Ex. 20:16"}, {"q": 77, "question": "What is required in the ninth commandment?", "answer": "The ninth commandment requires the maintaining and promoting of truth between man and man, and of our own and our neighbour's good name, especially in witness-bearing.", "refs": "Zech. 8:16; 3 John 1:12; Prov. 14:5, 25"}, {"q": 78, "question": "What is forbidden in the ninth commandment?", "answer": "The ninth commandment forbids whatsoever is prejudicial to truth, or injurious to our own or our neighbour's good name.", "refs": "Eph. 4:25; Ps. 15:3; Lev. 19:16"}, {"q": 79, "question": "Which is the tenth commandment?", "answer": "The tenth commandment is, Thou shalt not covet thy neighbour's house, thou shalt not covet thy neighbour's wife, nor his manservant, nor his maidservant, nor his ox, nor his ass, nor any thing that is thy neighbour's.", "refs": "Ex. 20:17"}, {"q": 80, "question": "What is required in the tenth commandment?", "answer": "The tenth commandment requires full contentment with our own condition, with a right and charitable frame of spirit toward our neighbour, and all that is his.", "refs": "Heb. 13:5; 1 Tim. 6:6; Rom. 12:15; 1 Cor. 13:4-7"}, {"q": 81, "question": "What is forbidden in the tenth commandment?", "answer": "The tenth commandment forbids all discontentment with our own estate, envying or grieving at the good of our neighbour, and all inordinate motions and affections to anything that is his.", "refs": "1 Kings 21:4; Esther 5:13; Gal. 5:26; Col. 3:5"}, {"q": 82, "question": "Is any man able perfectly to keep the commandments of God?", "answer": "No mere man, since the fall, is able in this life perfectly to keep the commandments of God, but does daily break them in thought, word, and deed.", "refs": "Eccl. 7:20; Gen. 6:5; James 3:2, 8; Rom. 3:9-19"}, {"q": 83, "question": "Are all transgressions of the law equally heinous?", "answer": "Some sins in themselves, and by reason of several aggravations, are more heinous in the sight of God than others.", "refs": "John 19:11; Ezek. 8:6, 13, 15; 1 John 5:16"}, {"q": 84, "question": "What does every sin deserve?", "answer": "Every sin deserves God's wrath and curse, both in this life, and that which is to come.", "refs": "Eph. 5:6; Gal. 3:10; Matt. 25:41"}, {"q": 85, "question": "What does God require of us, that we may escape his wrath and curse due to us for sin?", "answer": "To escape the wrath and curse of God due to us for sin, God requires of us faith in Jesus Christ, repentance unto life, with the diligent use of all the outward means whereby Christ communicates to us the benefits of redemption.", "refs": "Acts 20:21; Prov. 8:33-36"}, {"q": 86, "question": "What is faith in Jesus Christ?", "answer": "Faith in Jesus Christ is a saving grace, whereby we receive and rest upon him alone for salvation, as he is offered to us in the gospel.", "refs": "Heb. 10:39; John 1:12; Phil. 3:9; Gal. 2:16"}, {"q": 87, "question": "What is repentance unto life?", "answer": "Repentance unto life is a saving grace, whereby a sinner, out of a true sense of his sin, and apprehension of the mercy of God in Christ, does, with grief and hatred of his sin, turn from it unto God, with full purpose of, and endeavour after, new obedience.", "refs": "Acts 11:18; Acts 2:37-38; Joel 2:13; Jer. 31:18-19; Ps. 119:59-60"}, {"q": 88, "question": "What are the outward means whereby Christ communicates to us the benefits of redemption?", "answer": "The outward and ordinary means whereby Christ communicates to us the benefits of redemption, are his ordinances, especially the Word, sacraments, and prayer; all which are made effectual to the elect for salvation.", "refs": "Matt. 28:19-20; Acts 2:41-42"}, {"q": 89, "question": "How is the Word made effectual to salvation?", "answer": "The Spirit of God makes the reading, but especially the preaching of the Word, an effectual means of convincing and converting sinners, and of building them up in holiness and comfort, through faith, unto salvation.", "refs": "Neh. 8:8-9; 1 Cor. 14:24-25; Ps. 19:7; Rom. 10:14, 17"}, {"q": 90, "question": "How is the Word to be read and heard, that it may become effectual to salvation?", "answer": "That the Word may become effectual to salvation, we must attend thereunto with diligence, preparation, and prayer; receive it with faith and love, lay it up in our hearts, and practice it in our lives.", "refs": "Prov. 8:34; 1 Pet. 2:1-2; Luke 8:15; James 1:22, 25"}, {"q": 91, "question": "How do the sacraments become effectual means of salvation?", "answer": "The sacraments become effectual means of salvation, not from any virtue in them, or in him that does administer them, but only by the blessing of Christ, and the working of his Spirit in them that by faith receive them.", "refs": "1 Pet. 3:21; 1 Cor. 3:6-7; 1 Cor. 12:13"}, {"q": 92, "question": "What is a sacrament?", "answer": "A sacrament is a holy ordinance instituted by Christ, wherein, by sensible signs, Christ, and the benefits of the new covenant, are represented, sealed, and applied to believers.", "refs": "Gen. 17:7, 10; Matt. 26:26-28; Rom. 4:11"}, {"q": 93, "question": "Which are the sacraments of the New Testament?", "answer": "The sacraments of the New Testament are, Baptism, and the Lord's Supper.", "refs": "Matt. 28:19; Matt. 26:26-28; 1 Cor. 11:23-25"}, {"q": 94, "question": "What is baptism?", "answer": "Baptism is a sacrament, wherein the washing with water in the name of the Father, and of the Son, and of the Holy Ghost, does signify and seal our ingrafting into Christ, and partaking of the benefits of the covenant of grace, and our engagement to be the Lord's.", "refs": "Matt. 28:19; Acts 2:38; Gal. 3:27; Rom. 6:4"}, {"q": 95, "question": "To whom is baptism to be administered?", "answer": "Baptism is not to be administered to any that are out of the visible church, till they profess their faith in Christ, and obedience to him; but the infants of such as are members of the visible church are to be baptized.", "refs": "Acts 8:36-37; Acts 2:38-39; Gen. 17:7, 9-10"}, {"q": 96, "question": "What is the Lord's Supper?", "answer": "The Lord's Supper is a sacrament, wherein, by giving and receiving bread and wine, according to Christ's appointment, his death is showed forth; and the worthy receivers are, not after a corporal and carnal manner, but by faith, made partakers of his body and blood, with all his benefits, to their spiritual nourishment and growth in grace.", "refs": "1 Cor. 11:23-26; 1 Cor. 10:16"}, {"q": 97, "question": "What is required to the worthy receiving of the Lord's Supper?", "answer": "It is required of them that would worthily partake of the Lord's Supper, that they examine themselves of their knowledge to discern the Lord's body, of their faith to feed upon him, of their repentance, love, and new obedience; lest, coming unworthily, they eat and drink judgment to themselves.", "refs": "1 Cor. 11:27-29; 2 Cor. 13:5"}, {"q": 98, "question": "What is prayer?", "answer": "Prayer is an offering up of our desires unto God, for things agreeable to his will, in the name of Christ, with confession of our sins, and thankful acknowledgment of his mercies.", "refs": "Ps. 62:8; 1 John 5:14; John 16:23; Phil. 4:6"}, {"q": 99, "question": "What rule has God given for our direction in prayer?", "answer": "The whole Word of God is of use to direct us in prayer; but the special rule of direction is that form of prayer which Christ taught his disciples, commonly called The Lord's Prayer.", "refs": "1 John 5:14; Matt. 6:9-13"}, {"q": 100, "question": "What does the preface of the Lord's Prayer teach us?", "answer": "The preface of the Lord's Prayer, which is, Our Father which art in heaven, teaches us to draw near to God with all holy reverence and confidence, as children to a father, able and ready to help us; and that we should pray with and for others.", "refs": "Matt. 6:9; Luke 11:13; Acts 12:5"}, {"q": 101, "question": "What do we pray for in the first petition?", "answer": "In the first petition, which is, Hallowed be thy name, we pray, that God would enable us and others to glorify him in all that whereby he makes himself known; and that he would dispose all things to his own glory.", "refs": "Ps. 67:1-3; Ps. 83:18; Ps. 86:9"}, {"q": 102, "question": "What do we pray for in the second petition?", "answer": "In the second petition, which is, Thy kingdom come, we pray, that Satan's kingdom may be destroyed; and that the kingdom of grace may be advanced, ourselves and others brought into it, and kept in it; and that the kingdom of glory may be hastened.", "refs": "Ps. 68:1, 18; Rev. 12:10-11; Rom. 10:1; Rev. 22:20"}, {"q": 103, "question": "What do we pray for in the third petition?", "answer": "In the third petition, which is, Thy will be done in earth, as it is in heaven, we pray, that God, by his grace, would make us able and willing to know, obey, and submit to his will in all things, as the angels do in heaven.", "refs": "Ps. 119:34-36; Ps. 103:20-21"}, {"q": 104, "question": "What do we pray for in the fourth petition?", "answer": "In the fourth petition, which is, Give us this day our daily bread, we pray, that of God's free gift we may receive a competent portion of the good things of this life, and enjoy his blessing with them.", "refs": "Prov. 30:8-9; Ps. 90:17; 1 Tim. 4:4-5"}, {"q": 105, "question": "What do we pray for in the fifth petition?", "answer": "In the fifth petition, which is, And forgive us our debts, as we forgive our debtors, we pray, that God, for Christ's sake, would freely pardon all our sins; which we are the rather encouraged to ask, because by his grace we are enabled from the heart to forgive others.", "refs": "Ps. 51:1-2, 7, 9; Dan. 9:19; Matt. 6:14-15; Matt. 18:35"}, {"q": 106, "question": "What do we pray for in the sixth petition?", "answer": "In the sixth petition, which is, And lead us not into temptation, but deliver us from evil, we pray, that God would either keep us from being tempted to sin, or support and deliver us when we are tempted.", "refs": "Matt. 26:41; Ps. 19:13; John 17:15"}, {"q": 107, "question": "What does the conclusion of the Lord's Prayer teach us?", "answer": "The conclusion of the Lord's Prayer, which is, For thine is the kingdom, and the power, and the glory, forever, Amen, teaches us to take our encouragement in prayer from God only, and in our prayers to praise him, ascribing kingdom, power, and glory to him; and, in testimony of our desire, and assurance to be heard, we say, Amen.", "refs": "Dan. 9:4, 7-9, 16-19; 1 Chron. 29:11-13; 1 Cor. 14:16"}];
+
+// ---------- Constants ----------
+const HC_END = 129;
+const WSC_END = 236;
+const TOTAL_DAYS = 365;
+const STORAGE_PREFIX = 'catechism_v1_';
+
+// ---------- Storage helpers (all local, no network) ----------
+function getStore(key, fallback){
+  try{
+    const raw = localStorage.getItem(STORAGE_PREFIX + key);
+    return raw === null ? fallback : JSON.parse(raw);
+  }catch(e){ return fallback; }
+}
+function setStore(key, value){
+  try{ localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value)); }
+  catch(e){ /* storage unavailable; app still works, just won't persist */ }
+}
+
+// ---------- Date / day-of-year math ----------
+function dateToDayOfYear(d){
+  // Use UTC timestamps for the subtraction so a DST transition between Jan 1
+  // and the target date can't shave an hour off the difference and floor the
+  // result down to the wrong (previous) day.
+  const utcTarget = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const utcStart = Date.UTC(d.getFullYear(), 0, 1);
+  const diff = utcTarget - utcStart;
+  const day = Math.round(diff / 86400000) + 1;
+  return day;
+}
+function dayOfYearToDate(day, year){
+  const d = new Date(year, 0, 1);
+  d.setDate(d.getDate() + (day - 1));
+  return d;
+}
+function clampDay(day){
+  if(day < 1) return 1;
+  if(day > TOTAL_DAYS) return TOTAL_DAYS; // day 366 in leap years repeats day 365's reading
+  return day;
+}
+
+function readingForDay(day){
+  day = clampDay(day);
+  if(day <= HC_END){
+    return { book:'heidelberg', pass:1, qNum: day, entry: HEIDELBERG[day-1] };
+  } else if(day <= WSC_END){
+    const qn = day - HC_END;
+    return { book:'westminster', pass:1, qNum: qn, entry: WESTMINSTER[qn-1] };
+  } else {
+    const qn = day - WSC_END;
+    return { book:'heidelberg', pass:2, qNum: qn, entry: HEIDELBERG[qn-1] };
+  }
+}
+
+// ---------- State ----------
+let viewedYear = new Date().getFullYear();
+let currentDay = clampDay(dateToDayOfYear(new Date()));
+let saveTimer = null;
+
+// ---------- Theme ----------
+function applyTheme(pref){
+  let effective = pref;
+  if(pref === 'auto'){
+    effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  document.body.setAttribute('data-theme', effective);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', effective === 'dark' ? '#17181A' : '#F7F3E8');
+  document.querySelectorAll('.theme-opt').forEach(el=>{
+    el.classList.toggle('active', el.dataset.themeChoice === pref);
+  });
+}
+function initTheme(){
+  const pref = getStore('theme', 'auto');
+  applyTheme(pref);
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+      if(getStore('theme','auto') === 'auto') applyTheme('auto');
+    });
+  }
+}
+document.querySelectorAll('.theme-opt').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const choice = el.dataset.themeChoice;
+    setStore('theme', choice);
+    applyTheme(choice);
+  });
+});
+
+// ---------- Rendering ----------
+const bookNames = { heidelberg: 'Heidelberg Catechism', westminster: 'Westminster Shorter Catechism' };
+
+function formatDateLine(day){
+  const d = dayOfYearToDate(day, viewedYear);
+  return d.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+}
+
+function render(day){
+  day = clampDay(day);
+  currentDay = day;
+  const r = readingForDay(day);
+  const entry = r.entry;
+
+  const isToday = (day === clampDay(dateToDayOfYear(new Date())) && viewedYear === new Date().getFullYear());
+
+  document.getElementById('bookLabel').textContent = bookNames[r.book] + (r.pass === 2 ? ' · Second Reading' : '');
+  document.getElementById('dateLabel').textContent = (isToday ? 'Today · ' : '') + formatDateLine(day);
+  document.getElementById('bookTag').textContent = bookNames[r.book];
+  if(r.book === 'heidelberg' && entry.lordsDay){
+    document.getElementById('lordsDayTag').textContent = "Lord's Day " + entry.lordsDay;
+    document.getElementById('lordsDayTag').classList.remove('hidden');
+  } else {
+    document.getElementById('lordsDayTag').classList.add('hidden');
+  }
+  document.getElementById('qNumber').textContent = 'Q' + entry.q;
+  document.getElementById('qText').textContent = entry.question;
+  document.getElementById('aText').textContent = entry.answer;
+  document.getElementById('refsText').textContent = entry.refs;
+
+  // ribbon
+  const pct = (day / TOTAL_DAYS) * 100;
+  document.getElementById('ribbonFill').style.width = pct + '%';
+  document.getElementById('ribbonTail').style.left = pct + '%';
+  let fillColor = 'var(--oxblood)';
+  if(day > HC_END && day <= WSC_END) fillColor = 'var(--slate)';
+  else if(day > WSC_END) fillColor = 'var(--pine)';
+  document.getElementById('ribbonFill').style.background = fillColor;
+  document.querySelector('#ribbonTail svg path').setAttribute('fill', fillColor);
+  document.getElementById('dayLabel').textContent = 'Day ' + day + ' of ' + TOTAL_DAYS;
+  document.getElementById('pctLabel').textContent = Math.round(pct) + '%';
+
+  // completed checkbox
+  const dayKey = 'complete_' + day;
+  const done = getStore(dayKey, false);
+  document.getElementById('checkbox').classList.toggle('checked', done);
+  document.getElementById('completeRow').classList.toggle('done', done);
+  document.getElementById('completeLabel').textContent = done ? 'Completed' : 'Mark as completed';
+
+  // notes
+  document.getElementById('notesArea').value = getStore('notes_' + day, '');
+  document.getElementById('saveHint').classList.remove('show');
+
+  // nav disabled states
+  document.getElementById('prevBtn').disabled = (day <= 1);
+  document.getElementById('nextBtn').disabled = (day >= TOTAL_DAYS);
+
+  setStore('lastViewedDay', day);
+}
+
+// ---------- Interactions ----------
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  if(currentDay > 1) render(currentDay - 1);
+});
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(currentDay < TOTAL_DAYS) render(currentDay + 1);
+});
+document.getElementById('todayBtn').addEventListener('click', ()=>{
+  viewedYear = new Date().getFullYear();
+  render(clampDay(dateToDayOfYear(new Date())));
+  showToast("Back to today");
+});
+
+document.getElementById('completeRow').addEventListener('click', ()=>{
+  const dayKey = 'complete_' + currentDay;
+  const now = !getStore(dayKey, false);
+  setStore(dayKey, now);
+  document.getElementById('checkbox').classList.toggle('checked', now);
+  document.getElementById('completeRow').classList.toggle('done', now);
+  document.getElementById('completeLabel').textContent = now ? 'Completed' : 'Mark as completed';
+});
+
+document.getElementById('notesArea').addEventListener('input', (e)=>{
+  clearTimeout(saveTimer);
+  const val = e.target.value;
+  const day = currentDay;
+  saveTimer = setTimeout(()=>{
+    setStore('notes_' + day, val);
+    const hint = document.getElementById('saveHint');
+    hint.textContent = 'Saved';
+    hint.classList.add('show');
+    setTimeout(()=>hint.classList.remove('show'), 1400);
+  }, 500);
+});
+
+// ribbon tap-to-jump
+document.getElementById('ribbonTrack').addEventListener('click', (e)=>{
+  const rect = e.currentTarget.getBoundingClientRect();
+  const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  const day = clampDay(Math.round(frac * TOTAL_DAYS) || 1);
+  render(day);
+});
+
+// ---------- Go to Date modal ----------
+const dateModalBackdrop = document.getElementById('dateModalBackdrop');
+document.getElementById('dateBtn').addEventListener('click', ()=>{
+  const d = dayOfYearToDate(currentDay, viewedYear);
+  const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  document.getElementById('dateInput').value = iso;
+  document.getElementById('dayInput').value = currentDay;
+  dateModalBackdrop.classList.add('open');
+});
+document.getElementById('dateCancelBtn').addEventListener('click', ()=> dateModalBackdrop.classList.remove('open'));
+dateModalBackdrop.addEventListener('click', (e)=>{ if(e.target === dateModalBackdrop) dateModalBackdrop.classList.remove('open'); });
+
+document.getElementById('dateInput').addEventListener('change', ()=>{
+  document.getElementById('dayInput').value = '';
+});
+document.getElementById('dayInput').addEventListener('input', ()=>{
+  document.getElementById('dateInput').value = '';
+});
+
+document.getElementById('dateGoBtn').addEventListener('click', ()=>{
+  const dayVal = document.getElementById('dayInput').value;
+  const dateVal = document.getElementById('dateInput').value;
+  if(dayVal){
+    const dn = clampDay(parseInt(dayVal, 10));
+    render(dn);
+    dateModalBackdrop.classList.remove('open');
+    showToast('Jumped to Day ' + dn);
+  } else if(dateVal){
+    const parts = dateVal.split('-').map(Number);
+    const d = new Date(parts[0], parts[1]-1, parts[2]);
+    viewedYear = parts[0];
+    const dn = clampDay(dateToDayOfYear(d));
+    render(dn);
+    dateModalBackdrop.classList.remove('open');
+    showToast('Jumped to ' + formatDateLine(dn));
+  } else {
+    dateModalBackdrop.classList.remove('open');
+  }
+});
+
+// ---------- Settings modal ----------
+const settingsModalBackdrop = document.getElementById('settingsModalBackdrop');
+document.getElementById('settingsBtn').addEventListener('click', ()=>{
+  updateStats();
+  settingsModalBackdrop.classList.add('open');
+});
+document.getElementById('settingsCloseBtn').addEventListener('click', ()=> settingsModalBackdrop.classList.remove('open'));
+settingsModalBackdrop.addEventListener('click', (e)=>{ if(e.target === settingsModalBackdrop) settingsModalBackdrop.classList.remove('open'); });
+
+function updateStats(){
+  let completedCount = 0;
+  for(let i=1;i<=TOTAL_DAYS;i++){
+    if(getStore('complete_'+i, false)) completedCount++;
+  }
+  document.getElementById('statCompleted').textContent = completedCount + ' of ' + TOTAL_DAYS;
+
+  // streak: consecutive completed days ending at the most recent completed day at or before today
+  let streak = 0;
+  const todayDay = clampDay(dateToDayOfYear(new Date()));
+  let cursor = todayDay;
+  while(cursor >= 1 && getStore('complete_'+cursor, false)){
+    streak++;
+    cursor--;
+  }
+  document.getElementById('statStreak').textContent = streak + (streak === 1 ? ' day' : ' days');
+
+  const r = readingForDay(currentDay);
+  const cycleName = r.book === 'heidelberg' ? ('Heidelberg, Pass ' + r.pass) : 'Westminster Shorter Catechism';
+  document.getElementById('statCycle').textContent = cycleName;
+}
+
+// ---------- Toast ----------
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+// ---------- Init ----------
+initTheme();
+render(currentDay);
+
+// Re-check date at midnight / on resume, so leaving the app open overnight still advances
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    const nowDay = clampDay(dateToDayOfYear(new Date()));
+    const wasOnToday = (currentDay === clampDay(dateToDayOfYear(new Date(Date.now() - 1000))) );
+    // Only auto-advance if the user was on "today" before backgrounding (don't yank them off a date they're browsing)
+    const lastAuto = getStore('_lastKnownTodayDay', nowDay);
+    if(lastAuto !== nowDay && currentDay === lastAuto){
+      render(nowDay);
+    }
+    setStore('_lastKnownTodayDay', nowDay);
+  }
+});
+setStore('_lastKnownTodayDay', clampDay(dateToDayOfYear(new Date())));
+</script>
+</body>
+</html>
